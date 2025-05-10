@@ -1,0 +1,29 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependencies first for better caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build with optimization flags
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api-gateway .
+
+# Use lightweight alpine for runtime
+FROM alpine:latest
+
+WORKDIR /app
+
+# Create non-root user
+RUN adduser -D appuser
+USER appuser
+
+# Copy only the binary from builder stage
+COPY --from=builder /app/api-gateway .
+
+EXPOSE 80
+
+CMD ["./api-gateway"]
