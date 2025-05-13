@@ -1,1 +1,7 @@
-/.env
+.env
+**/__debug_bin*
+*.pem
+
+tree.txt
+.vscode/
+API Marketplace/environments/DEV.bru

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ZXstrike/config"
-	"github.com/ZXstrike/models"
+	"github.com/ZXstrike/internal/config"
+	"github.com/ZXstrike/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+var PostgresDB *gorm.DB
 
 func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 
@@ -26,6 +28,8 @@ func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 	}
 
 	migration(db)
+
+	PostgresDB = db
 
 	return db, nil
 }

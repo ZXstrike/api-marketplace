@@ -6,6 +6,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
@@ -37,9 +39,14 @@ func LoadConfig() (*AppConfig, error) {
 	// Load configuration from environment variables or a config file
 	// For simplicity, we are hardcoding the values here
 
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %w", err)
+	}
+
 	// Load the private and public keys here
 	privateKey, publicKey, err := LoadECDSAKeys()
-
 	if err != nil {
 		panic("Failed to load ECDSA keys: " + err.Error())
 	}
@@ -51,7 +58,7 @@ func LoadConfig() (*AppConfig, error) {
 		PostgresConfig: PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
 			Port:     os.Getenv("POSTGRES_PORT"),
-			User:     os.Getenv("POSTGRES_DB"),
+			User:     os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("POSTGRES_PASSWORD"),
 			Database: os.Getenv("POSTGRES_DATABASE"),
 		},

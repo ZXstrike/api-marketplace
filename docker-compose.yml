@@ -1,20 +1,16 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
     container_name: marketplace_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Optional: Mount init scripts if needed
-      # - ./scripts/db_init:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432" # Expose for local access if needed, remove for production
+      - "5432:5432" # Expose for local dev; remove in prod
     networks:
       - app-network
 
@@ -22,29 +18,32 @@ services:
     image: redis:7-alpine
     container_name: marketplace_redis
     restart: unless-stopped
-    # command: redis-server --requirepass ${REDIS_PASSWORD} # Uncomment if using password
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - "6379:6379" # Expose for local access if needed, remove for production
+      - "6379:6379" # Expose for local dev; remove in prod
     networks:
       - app-network
 
-  api-gateway:
-    container_name: api_gateway
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "${GATEWAY_PORT}:${GATEWAY_PORT}" # Expose gateway port
-    depends_on:
-      - redis # Gateway might need Redis for rate limiting
-    networks:
-      - app-network
-    volumes:
-      - ./api-gateway:/app # Mount code for development hot-reloading (optional)
+  # api-gateway:
+  #   container_name: api_gateway
+  #   build:
+  #     context: ./api-gateway
+  #     dockerfile: Dockerfile
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${SERVER_PORT}:${SERVER_PORT}" # External:Internal port
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - ./api-gateway:/app
+  #     - ./secrets:/app/secrets:ro # Mount key files read-only
 
+  # Optional: Marketplace App (Uncomment if needed)
   # marketplace-app:
   #   container_name: marketplace_app
   #   build:
@@ -54,25 +53,23 @@ services:
   #   env_file:
   #     - .env
   #   ports:
-  #     - "${APP_PORT}:${APP_PORT}" # Expose app port (might not be needed externally)
+  #     - "${APP_PORT}:${APP_PORT}"
   #   depends_on:
-  #     db:
-  #       condition: service_healthy # Wait for DB to be ready (requires HEALTHCHECK in db service)
-  #     redis:
-  #       condition: service_started # Wait for Redis to start
+  #     - db
+  #     - redis
   #   networks:
   #     - app-network
   #   volumes:
-  #     - ./marketplace-app:/app # Mount code for development hot-reloading (optional)
+  #     - ./marketplace-app:/app
 
-  # Add frontend service later when you build it
+  # Optional: Frontend App (Uncomment when needed)
   # frontend:
   #   container_name: marketplace_frontend
   #   build:
   #     context: ./frontend-app
   #     dockerfile: Dockerfile
   #   ports:
-  #     - "8082:80" # Example: Map host 8082 to container port 80 (Nginx)
+  #     - "8082:80"
   #   depends_on:
   #     - marketplace-app
   #   networks:
@@ -84,4 +81,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
