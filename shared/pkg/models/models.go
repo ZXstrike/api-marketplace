@@ -16,16 +16,18 @@ type Base struct {
 // User represents any account (consumer, provider, admin)
 type User struct {
 	Base
-	ID             string               `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	Username       string               `json:"username" gorm:"uniqueIndex;not null"`
-	Email          string               `json:"email" gorm:"uniqueIndex;not null"`
-	PasswordHash   string               `json:"-" gorm:"column:password_hash;not null"`
-	AccountBalance float64              `json:"account_balance" gorm:"type:decimal(12,2);not null;default:0"`
-	Roles          []Role               `json:"roles,omitempty" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
-	APIs           []API                `json:"apis,omitempty" gorm:"foreignKey:ProviderID;constraint:OnDelete:CASCADE"`
-	Subscriptions  []Subscription       `json:"subscriptions,omitempty" gorm:"foreignKey:ConsumerUserID;constraint:OnDelete:CASCADE"`
-	Payments       []PaymentTransaction `json:"payments,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	Payouts        []ProviderPayout     `json:"payouts,omitempty" gorm:"foreignKey:ProviderID;constraint:OnDelete:CASCADE"`
+	ID                string               `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	Username          string               `json:"username" gorm:"uniqueIndex;not null"`
+	Email             string               `json:"email" gorm:"uniqueIndex;not null"`
+	PasswordHash      string               `json:"-" gorm:"column:password_hash;not null"`
+	Description       string               `json:"description" gorm:"type:text"`
+	ProfilePictureURL string               `json:"profile_picture_url" gorm:"type:varchar(255)"`
+	AccountBalance    float64              `json:"-" gorm:"type:decimal(12,2);not null;default:0"`
+	Roles             []Role               `json:"roles,omitempty" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
+	APIs              []API                `json:"apis,omitempty" gorm:"foreignKey:ProviderID;constraint:OnDelete:CASCADE"`
+	Subscriptions     []Subscription       `json:"subscriptions,omitempty" gorm:"foreignKey:ConsumerUserID;constraint:OnDelete:CASCADE"`
+	Payments          []PaymentTransaction `json:"payments,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Payouts           []ProviderPayout     `json:"payouts,omitempty" gorm:"foreignKey:ProviderID;constraint:OnDelete:CASCADE"`
 }
 
 // Role represents a permission set

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ZXstrike/internal/config"
-	"github.com/ZXstrike/internal/database"
-	"github.com/ZXstrike/internal/routes"
+	"github.com/ZXstrike/marketplace-app/internal/config"
+	"github.com/ZXstrike/marketplace-app/internal/database"
+	"github.com/ZXstrike/marketplace-app/internal/routes"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -32,11 +33,11 @@ func main() {
 	}
 
 	// StartServer()
-	StartServer(config.ServerPort, db)
+	StartServer(config.ServerPort, db, config.PrivateKey, config.PublicKey)
 }
 
 // StartServer starts the server
-func StartServer(Port string, db *gorm.DB) {
+func StartServer(Port string, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) {
 	router := gin.New()
 
 	gin.SetMode(gin.DebugMode)
@@ -45,7 +46,7 @@ func StartServer(Port string, db *gorm.DB) {
 	router.Use(gin.Recovery(), gin.Logger())
 
 	// Initialize app routes
-	routes.InitRoutes(router)
+	routes.InitRoutes(router, db, privateKey, publicKey)
 
 	// Create an HTTP server using the Gin router
 	srv := &http.Server{

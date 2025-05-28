@@ -3,7 +3,7 @@ package routers
 import (
 	"net/http"
 
-	"github.com/ZXstrike/internal/proxy"
+	"github.com/ZXstrike/api-gateway/internal/proxy"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"

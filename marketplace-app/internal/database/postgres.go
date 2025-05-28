@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ZXstrike/internal/config"
-	"github.com/ZXstrike/internal/models"
+	"github.com/ZXstrike/marketplace-app/internal/config"
+	"github.com/ZXstrike/shared/pkg/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

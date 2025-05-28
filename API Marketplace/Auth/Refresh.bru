@@ -1,0 +1,40 @@
+meta {
+  name: Refresh
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseurl}}/auth/refresh
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "token": "{{token}}"
+  }
+  
+}
+
+script:post-response {
+  function onResponse(res) {
+    // Access the parsed JSON response
+    let jsonResponse = res.body;
+    
+    // Check if the "token" key exists in the response
+    if (jsonResponse && jsonResponse.token) {
+      // Store the token in an environment variable named "token"
+      bru.setEnvVar("token", jsonResponse.token);
+      console.log("Token has been set: " + jsonResponse.token);
+    } else {
+      console.log("Token not found or request failed.");
+    }
+  }
+  
+  onResponse(res)
+}

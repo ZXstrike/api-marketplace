@@ -32,16 +32,16 @@ func RateLimitMiddleware(logger *log.Logger, redisClient *redis.Client) gin.Hand
 	}
 }
 
-func getAPIRateLimit(redisClient *redis.Client, apiKey string) (int, error) {
-	// Fetch rate limit from Redis
-	rateLimit, err := redisClient.Get(rateLimitPrefix + apiKey).Result()
-	if err != nil && err != redis.Nil {
-		return 0, err
-	}
+// func getAPIRateLimit(redisClient *redis.Client, apiKey string) (int, error) {
+// 	// Fetch rate limit from Redis
+// 	rateLimit, err := redisClient.Get(rateLimitPrefix + apiKey).Result()
+// 	if err != nil && err != redis.Nil {
+// 		return 0, err
+// 	}
 
-	if rateLimit == "" {
-		return 0, nil
-	}
+// 	if rateLimit == "" {
+// 		return 0, nil
+// 	}
 
-	return int(1), nil
-}
+// 	return int(1), nil
+// }

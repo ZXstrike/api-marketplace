@@ -1,29 +1,24 @@
 package routes
 
 import (
-	"github.com/ZXstrike/internal/domain/auth"
+	"crypto/ecdsa"
+
+	authRoutes "github.com/ZXstrike/marketplace-app/internal/domain/auth/routes"
+	storeRoutes "github.com/ZXstrike/marketplace-app/internal/domain/store/routes"
+	userRoutes "github.com/ZXstrike/marketplace-app/internal/domain/user/routes"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func InitRoutes(router *gin.Engine) {
+func InitRoutes(router *gin.Engine, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) {
 
 	// Auth routes
-	auth.AuthRoutes(router)
-	// // User routes
-	// user := router.Group("/user")
-	// {
-	// 	user.GET("/:id", GetUserHandler)
-	// 	user.PUT("/:id", UpdateUserHandler)
-	// 	user.DELETE("/:id", DeleteUserHandler)
-	// }
+	authRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
 
-	// // Product routes
-	// product := router.Group("/product")
-	// {
-	// 	product.GET("/", GetProductsHandler)
-	// 	product.GET("/:id", GetProductHandler)
-	// 	product.POST("/", CreateProductHandler)
-	// 	product.PUT("/:id", UpdateProductHandler)
-	// 	product.DELETE("/:id", DeleteProductHandler)
-	// }
+	// User routes
+	userRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
+
+	// Store routes
+	storeRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
 }

@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ZXstrike/internal/routers"
+	"github.com/ZXstrike/api-gateway/internal/routers"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

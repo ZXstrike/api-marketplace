@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/ZXstrike/internal/config"
+	"github.com/ZXstrike/marketplace-app/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
