@@ -45,7 +45,7 @@ func (h *Handler) GetAllStoresHandler(c *gin.Context) {
 }
 
 func (h *Handler) CreateStoreHandler(c *gin.Context) {
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -61,7 +61,7 @@ func (h *Handler) CreateStoreHandler(c *gin.Context) {
 }
 
 func (h *Handler) UpdateStoreHandler(c *gin.Context) {
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return

@@ -30,7 +30,7 @@ func (h *Handler) UpdateUserProfileHandler(c *gin.Context) {
 		Description string `json:"description"`
 	}
 
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -55,7 +55,7 @@ func (h *Handler) ChangePasswordHandler(c *gin.Context) {
 		NewPassword string `json:"new_password" binding:"required,min=8"`
 	}
 
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -82,7 +82,7 @@ func (h *Handler) UpdateProfilePictureHandler(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
+	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -98,13 +98,13 @@ func (h *Handler) UpdateProfilePictureHandler(c *gin.Context) {
 }
 
 func (h *Handler) GetUserProfilePictureHandler(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID := c.Param("id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user ID is required"})
 		return
 	}
 
-	user, err := h.service.GetUserProfile(c.Request.Context(), userID.(string))
+	user, err := h.service.GetUserProfile(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user profile"})
 		return

@@ -56,6 +56,7 @@ func StartServer(Port string, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicK
 
 	// Start server in a goroutine
 	go func() {
+		fmt.Printf("Starting server on port %s\n", Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Failed to start server: %v\n", err)
 			return

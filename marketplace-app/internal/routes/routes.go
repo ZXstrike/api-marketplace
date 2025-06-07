@@ -13,6 +13,8 @@ import (
 
 func InitRoutes(router *gin.Engine, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) {
 
+	router.Static("/files/profiles", "./files/profiles")
+
 	// Auth routes
 	authRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
 

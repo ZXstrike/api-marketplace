@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"crypto/ecdsa"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -27,8 +26,8 @@ func AuthMiddleware(publicKey *ecdsa.PublicKey) gin.HandlerFunc {
 			return
 		}
 
-		userID, _ := strconv.Atoi(claims.Subject)
-		c.Set("user_id", uint(userID))
+		userID := claims.Subject
+		c.Set("user_id", userID)
 		c.Next()
 	}
 }

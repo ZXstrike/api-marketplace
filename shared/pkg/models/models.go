@@ -8,8 +8,8 @@ import (
 
 // Base model with common timestamps & soft‑delete
 type Base struct {
-	CreatedAt time.Time      `json:"created_at" gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt time.Time      `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
+	CreatedAt time.Time      `json:"-" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt time.Time      `json:"-" gorm:"column:updated_at;autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"column:deleted_at;index"`
 }
 

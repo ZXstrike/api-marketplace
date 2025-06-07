@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ZXstrike/shared/pkg/models"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -47,12 +48,18 @@ func (r *repository) Update(ctx context.Context, id string, description string) 
 
 func (r *repository) ChangePassword(ctx context.Context, id string, newPass string) error {
 	var user models.User
-	err := r.db.WithContext(ctx).Model(&user).Where("id = ?", id).Update("password", newPass).Error
+
+	hashPass, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	err = r.db.WithContext(ctx).Model(&user).Where("id = ?", id).Update("password_hash", hashPass).Error
 	return err
 }
 
 func (r *repository) UpdateProfilePicture(ctx context.Context, id string, newProfilePicture string) error {
 	var user models.User
-	err := r.db.WithContext(ctx).Model(&user).Where("id = ?", id).Update("profile_picture", newProfilePicture).Error
+	err := r.db.WithContext(ctx).Model(&user).Where("id = ?", id).Update("profile_picture_url", newProfilePicture).Error
 	return err
 }

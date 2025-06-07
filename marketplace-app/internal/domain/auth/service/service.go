@@ -45,6 +45,18 @@ func (s *service) Register(ctx context.Context, email, password, username string
 		AccountBalance:    0,
 	}
 
+	var consumerRole *models.Role
+
+	if consumerRole, err = s.repo.GetRoleByName(ctx, "consumer"); err != nil {
+		s.repo.CreateRole(ctx, &models.Role{Name: "consumer"})
+		if consumerRole, err = s.repo.GetRoleByName(ctx, "consumer"); err != nil {
+			return err
+		}
+
+	}
+
+	user.Roles = []models.Role{*consumerRole}
+
 	return s.repo.Create(ctx, user)
 }
 
