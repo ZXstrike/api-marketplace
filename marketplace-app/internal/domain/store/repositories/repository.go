@@ -85,21 +85,17 @@ func (r *repository) GetStoreByUsername(ctx context.Context, username string) (*
 
 func (r *repository) GetAllStores(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-	if err := r.db.WithContext(ctx).Preload("Roles").Where("roles.name = ?", "store_owner").Find(&users).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Distinct("users.*").
+		Joins("JOIN user_roles ON users.id = user_roles.user_id").
+		Joins("JOIN roles ON user_roles.role_id = roles.id").
+		Where("roles.name = ?", "store_owner").
+		Preload("Roles").
+		Find(&users).Error; err != nil {
 		return nil, err
 	}
 
-	var stores []models.User
-	for _, user := range users {
-		for _, role := range user.Roles {
-			if role.Name == "store_owner" {
-				stores = append(stores, user)
-				break
-			}
-		}
-	}
-
-	return stores, nil
+	return users, nil
 }
 
 func (r *repository) UpdateStore(ctx context.Context, user_id string, description string) error {

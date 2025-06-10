@@ -62,7 +62,9 @@ type API struct {
 	ProviderID  string       `json:"provider_id" gorm:"type:uuid;not null;index"`
 	Provider    User         `json:"provider,omitempty" gorm:"foreignKey:ProviderID"`
 	Name        string       `json:"name" gorm:"not null"`
+	IconURL     string       `json:"icon_url" gorm:"type:varchar(255)"`
 	Description string       `json:"description" gorm:"type:text"`
+	BaseURL     string       `json:"base_url" gorm:"not null"`
 	Categories  []Category   `json:"categories,omitempty" gorm:"many2many:api_categories;constraint:OnDelete:CASCADE"`
 	Versions    []APIVersion `json:"versions,omitempty" gorm:"foreignKey:APIID;constraint:OnDelete:CASCADE"`
 }
@@ -78,7 +80,7 @@ type APIVersion struct {
 	Base
 	ID            string         `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	APIID         string         `json:"api_id" gorm:"type:uuid;not null;index"`
-	API           API            `json:"api,omitempty" gorm:"foreignKey:APIID"`
+	API           API            `json:"-" gorm:"foreignKey:APIID"`
 	VersionString string         `json:"version_string" gorm:"not null"`
 	PricePerCall  float64        `json:"price_per_call" gorm:"type:decimal(12,6);not null;default:0"`
 	Endpoints     []Endpoint     `json:"endpoints,omitempty" gorm:"foreignKey:APIVersionID;constraint:OnDelete:CASCADE"`
@@ -90,7 +92,7 @@ type Endpoint struct {
 	Base
 	ID            string     `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	APIVersionID  string     `json:"api_version_id" gorm:"type:uuid;not null;index"`
-	APIVersion    APIVersion `json:"api_version,omitempty" gorm:"foreignKey:APIVersionID"`
+	APIVersion    APIVersion `json:"-" gorm:"foreignKey:APIVersionID"`
 	HTTPMethod    string     `json:"http_method" gorm:"size:10;not null"`
 	Path          string     `json:"path" gorm:"not null"`
 	Documentation string     `json:"documentation" gorm:"type:text"` // ← per‑endpoint docs

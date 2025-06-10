@@ -53,9 +53,13 @@ func migration(db *gorm.DB) {
 		&models.ProviderPayout{},
 		// &models.RateLimitCounter{},  // optional: drop if using pure Redis
 	)
+
 	if err != nil {
 		log.Fatalf("migration failed: %v", err)
 	}
+
+	// Create default roles if they don't exist
+	models.GenerateCategories(db)
 
 	log.Println("✅ database migrated successfully")
 }

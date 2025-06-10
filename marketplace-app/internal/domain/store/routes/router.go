@@ -6,6 +6,7 @@ import (
 	"github.com/ZXstrike/marketplace-app/internal/domain/store/handler"
 	"github.com/ZXstrike/marketplace-app/internal/domain/store/repositories"
 	"github.com/ZXstrike/marketplace-app/internal/domain/store/service"
+	"github.com/ZXstrike/marketplace-app/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 		store.GET("/user/:userID", h.GetStoreByUserIDHandler)
 		store.GET("/username/:username", h.GetStoreByUsernameHandler)
 		store.GET("/all", h.GetAllStoresHandler)
-		store.POST("/create", h.CreateStoreHandler)
-		store.PUT("/update", h.UpdateStoreHandler)
+		store.POST("/create", middleware.AuthMiddleware(publicKey), h.CreateStoreHandler)
+		store.PUT("/update", middleware.AuthMiddleware(publicKey), h.UpdateStoreHandler)
 	}
 }
