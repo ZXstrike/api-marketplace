@@ -23,5 +23,6 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 		store.GET("/all", h.GetAllStoresHandler)
 		store.POST("/create", middleware.AuthMiddleware(publicKey), h.CreateStoreHandler)
 		store.PUT("/update", middleware.AuthMiddleware(publicKey), h.UpdateStoreHandler)
+		store.GET("/apis", middleware.AuthMiddleware(publicKey), h.GetStoreApisHandler)
 	}
 }

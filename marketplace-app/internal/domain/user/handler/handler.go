@@ -25,6 +25,21 @@ func (h *Handler) UserProfileHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+func (h *Handler) GetMyProfileHandler(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	user, err := h.service.GetUserProfile(c.Request.Context(), userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user profile"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
 func (h *Handler) UpdateUserProfileHandler(c *gin.Context) {
 	var req struct {
 		Description string `json:"description"`

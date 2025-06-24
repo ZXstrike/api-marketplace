@@ -4,8 +4,10 @@ import (
 	"crypto/ecdsa"
 
 	apiRoutes "github.com/ZXstrike/marketplace-app/internal/domain/api/routes"
+	apiKeyRoutes "github.com/ZXstrike/marketplace-app/internal/domain/api_key/routes"
 	authRoutes "github.com/ZXstrike/marketplace-app/internal/domain/auth/routes"
 	storeRoutes "github.com/ZXstrike/marketplace-app/internal/domain/store/routes"
+	subscriptionRoutes "github.com/ZXstrike/marketplace-app/internal/domain/subscription/routes"
 	userRoutes "github.com/ZXstrike/marketplace-app/internal/domain/user/routes"
 
 	"github.com/gin-gonic/gin"
@@ -27,4 +29,10 @@ func InitRoutes(router *gin.Engine, db *gorm.DB, privateKey *ecdsa.PrivateKey, p
 
 	// API routes
 	apiRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
+
+	// Subscription routes
+	subscriptionRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
+
+	// Api Key routes
+	apiKeyRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
 }

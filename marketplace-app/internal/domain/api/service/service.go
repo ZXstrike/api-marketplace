@@ -11,7 +11,7 @@ import (
 
 type Service interface {
 	GetAPIByID(id string) (*models.API, error)
-	CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) error
+	CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) (string, error)
 	UpdateAPI(apiID string, name string, desc string, baseUrl string, pricePerCall float64, categories []string) error
 	DeleteAPI(userId string, apiId string) error
 	GetAllAPIs(page int, lenght int) ([]models.API, error)
@@ -20,6 +20,7 @@ type Service interface {
 	UpdateAPIEndpoint(apiVersion string, endpoints []models.Endpoint) error
 	DeleteAPIEndpoint(endpointID string) error
 	GetAllEndpointsByAPIVersionID(apiVersionID string) ([]models.Endpoint, error)
+	GetAllCategories() ([]models.Category, error)
 }
 
 type service struct {
@@ -31,28 +32,28 @@ type service struct {
 func New(repo repositories.Repository, privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) Service {
 	return &service{repo, privateKey, publicKey}
 }
-func (s *service) CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) error {
+func (s *service) CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) (string, error) {
 
 	user, err := s.repo.GetUserByID(providerId)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var categoriesModels []models.Category
 	for _, categoryName := range categories {
 		category, err := s.repo.GetCategoryBySlug(categoryName)
 		if err != nil {
-			return err
+			return "", err
 		}
 		if category == nil {
-			return errors.New("category not found: " + categoryName)
+			return "", errors.New("category not found: " + categoryName)
 		}
 		categoriesModels = append(categoriesModels, *category)
 	}
 
 	if _, err := url.ParseRequestURI(baseUrl); err != nil {
-		return errors.New("invalid base URL format")
+		return "", errors.New("invalid base URL format")
 	}
 
 	api := models.API{
@@ -65,10 +66,15 @@ func (s *service) CreateNewAPI(name string, desc string, providerId string, base
 	}
 
 	if pricePerCall < 0 {
-		return errors.New("price per call cannot be negative")
+		return "", errors.New("price per call cannot be negative")
 	}
 
-	return s.repo.CreateAPI(api, pricePerCall)
+	apiID, err := s.repo.CreateAPI(api, pricePerCall)
+	if err != nil {
+		return "", err
+	}
+
+	return apiID, nil
 }
 
 func (s *service) UpdateAPI(apiID string, name string, desc string, baseUrl string, pricePerCall float64, categories []string) error {
@@ -221,4 +227,12 @@ func (s *service) GetAllEndpointsByAPIVersionID(apiVersionID string) ([]models.E
 	}
 
 	return endpoints, nil
+}
+
+func (s *service) GetAllCategories() ([]models.Category, error) {
+	categories, err := s.repo.GetAllCategories()
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
 }

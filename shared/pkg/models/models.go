@@ -64,7 +64,7 @@ type API struct {
 	Name        string       `json:"name" gorm:"not null"`
 	IconURL     string       `json:"icon_url" gorm:"type:varchar(255)"`
 	Description string       `json:"description" gorm:"type:text"`
-	BaseURL     string       `json:"base_url" gorm:"not null"`
+	BaseURL     string       `json:"-" gorm:"not null"`
 	Categories  []Category   `json:"categories,omitempty" gorm:"many2many:api_categories;constraint:OnDelete:CASCADE"`
 	Versions    []APIVersion `json:"versions,omitempty" gorm:"foreignKey:APIID;constraint:OnDelete:CASCADE"`
 }
@@ -80,7 +80,7 @@ type APIVersion struct {
 	Base
 	ID            string         `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	APIID         string         `json:"api_id" gorm:"type:uuid;not null;index"`
-	API           API            `json:"-" gorm:"foreignKey:APIID"`
+	API           API            `json:"api" gorm:"foreignKey:APIID"`
 	VersionString string         `json:"version_string" gorm:"not null"`
 	PricePerCall  float64        `json:"price_per_call" gorm:"type:decimal(12,6);not null;default:0"`
 	Endpoints     []Endpoint     `json:"endpoints,omitempty" gorm:"foreignKey:APIVersionID;constraint:OnDelete:CASCADE"`
@@ -103,7 +103,7 @@ type Subscription struct {
 	Base
 	ID               string               `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	ConsumerUserID   string               `json:"consumer_user_id" gorm:"type:uuid;not null;index"`
-	Consumer         User                 `json:"consumer,omitempty" gorm:"foreignKey:ConsumerUserID"`
+	Consumer         User                 `json:"-,omitempty" gorm:"foreignKey:ConsumerUserID"`
 	APIVersionID     string               `json:"api_version_id" gorm:"type:uuid;not null;index"`
 	APIVersion       APIVersion           `json:"api_version,omitempty" gorm:"foreignKey:APIVersionID"`
 	MaxMonthlyBudget float64              `json:"max_monthly_budget" gorm:"type:decimal(12,2);not null;default:0"`
@@ -118,9 +118,10 @@ type Subscription struct {
 type APIKey struct {
 	Base
 	ID             string       `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	SubscriptionID string       `json:"subscription_id" gorm:"type:uuid;not null;index"`
-	Subscription   Subscription `json:"subscription,omitempty" gorm:"foreignKey:SubscriptionID"`
-	KeyValueHash   string       `json:"key_value_hash" gorm:"not null"`
+	SubscriptionID string       `json:"-" gorm:"type:uuid;not null;index"`
+	Subscription   Subscription `json:"-,omitempty" gorm:"foreignKey:SubscriptionID"`
+	KeyValueHash   []byte       `json:"-" gorm:"not null;uniqueIndex"`
+	KeyPrefix      string       `json:"key_prefix" gorm:"not null;index"`
 	UsageLogs      []UsageLog   `json:"usage_logs,omitempty" gorm:"foreignKey:APIKeyID;constraint:OnDelete:CASCADE"`
 }
 

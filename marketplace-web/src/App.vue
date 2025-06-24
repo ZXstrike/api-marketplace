@@ -1,47 +1,35 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <div id="app-wrapper" class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased min-h-screen">
+    <Navbar v-if="!$route.meta.hideNavbar" />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
+    <main>
+      <RouterView :key="$route.fullPath" />
+    </main>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <Footer v-if="!$route.meta.hideFooter" />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script setup>
+import { onUpdated } from 'vue';
+import { RouterView, useRoute } from 'vue-router'; // Import useRoute
+import Navbar from '@/components/core/Navbar.vue';
+import Footer from '@/components/core/Footer.vue';
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+// Although $route is available in the template, if you needed to access it
+// in the script section for other logic, you would use this:
+// const route = useRoute();
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+// This function re-initializes Feather Icons every time the view changes.
+// This is crucial because Vue re-renders parts of the DOM, and the icons need to be redrawn.
+onUpdated(() => {
+  if (window.feather) {
+    window.feather.replace();
+    console.log('Feather icons updated');
   }
+});
+</script>
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
+<style>
+/* You can place global styles that are not part of Tailwind here */
 </style>

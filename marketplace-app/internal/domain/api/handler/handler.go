@@ -22,7 +22,7 @@ func (h *Handler) CreateNewAPI(c *gin.Context) {
 		Name         string   `json:"name" binding:"required"`
 		Description  string   `json:"description" binding:"required"`
 		BaseURL      string   `json:"base_url" binding:"required"`
-		PricePerCall float64  `json:"price_per_call" binding:"required"`
+		PricePerCall *float64 `json:"price_per_call" binding:"required,gte=0"`
 		Categories   []string `json:"categories"` // Optional, can be empty
 	}
 
@@ -37,13 +37,13 @@ func (h *Handler) CreateNewAPI(c *gin.Context) {
 		return
 	}
 
-	err := h.service.CreateNewAPI(req.Name, req.Description, userId.(string), req.BaseURL, req.PricePerCall, req.Categories)
+	apiID, err := h.service.CreateNewAPI(req.Name, req.Description, userId.(string), req.BaseURL, *req.PricePerCall, req.Categories)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create API: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "API created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "API created successfully", "api_id": apiID})
 }
 
 func (h *Handler) UpdateAPI(c *gin.Context) {
@@ -51,7 +51,7 @@ func (h *Handler) UpdateAPI(c *gin.Context) {
 		Name         string   `json:"name" binding:"required"`
 		Description  string   `json:"description" binding:"required"`
 		BaseURL      string   `json:"base_url" binding:"required"`
-		PricePerCall float64  `json:"price_per_call" binding:"required"`
+		PricePerCall *float64 `json:"price_per_call" binding:"required,gte=0"`
 		Categories   []string `json:"categories"` // Optional, can be empty
 	}
 
@@ -66,7 +66,7 @@ func (h *Handler) UpdateAPI(c *gin.Context) {
 		return
 	}
 
-	err := h.service.UpdateAPI(apiID, req.Name, req.Description, req.BaseURL, req.PricePerCall, req.Categories)
+	err := h.service.UpdateAPI(apiID, req.Name, req.Description, req.BaseURL, *req.PricePerCall, req.Categories)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update API: " + err.Error()})
 		return
@@ -144,6 +144,20 @@ func (h *Handler) GetAPIByID(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, api)
 	}
+}
+
+func (h *Handler) GetAllAPIsByUserID(c *gin.Context) {
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	apis, err := h.service.GetAllAPIsByUserID(userId.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch APIs: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, apis)
 }
 
 func (h *Handler) CreateNewAPIEndpoint(c *gin.Context) {
@@ -257,4 +271,14 @@ func (h *Handler) GetAllAPIEndpointsByAPIVersionID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, endpoints)
+}
+
+func (h *Handler) GetAllCategories(c *gin.Context) {
+	categories, err := h.service.GetAllCategories()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch categories: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
 }

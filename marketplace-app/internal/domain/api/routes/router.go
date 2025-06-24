@@ -23,10 +23,12 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 		api.DELETE("/delete/:id", middleware.AuthMiddleware(publicKey), h.DeleteAPI)
 		api.GET("/all", h.GetAllAPIs)
 		api.GET("/:id", h.GetAPIByID)
+		api.GET("/my-api", middleware.AuthMiddleware(publicKey), h.GetAllAPIsByUserID)
 		api.POST("/create-endpoint", middleware.AuthMiddleware(publicKey), h.CreateNewAPIEndpoint)
 		api.PUT("/update-endpoint", middleware.AuthMiddleware(publicKey), h.UpdateAPIEndpoint)
 		api.DELETE("/delete-endpoint/:id", middleware.AuthMiddleware(publicKey), h.DeleteAPIEndpoint)
 		api.GET("/api-endpoints/:apiVersionID", h.GetAllAPIEndpointsByAPIVersionID)
+		api.GET("/categories", h.GetAllCategories)
 	}
 
 }

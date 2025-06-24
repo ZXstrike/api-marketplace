@@ -13,6 +13,8 @@ type Repository interface {
 	GetStoreByUsername(ctx context.Context, username string) (*models.User, error)
 	GetAllStores(ctx context.Context) ([]models.User, error)
 	UpdateStore(ctx context.Context, user_id string, description string) error
+	GetStoreApis(ctx context.Context, user_id string) ([]models.API, error)
+	GetApiVersionsSubsCount(ctx context.Context, apiID string) (int, error)
 }
 
 type repository struct {
@@ -106,4 +108,27 @@ func (r *repository) UpdateStore(ctx context.Context, user_id string, descriptio
 
 	user.Description = description
 	return r.db.WithContext(ctx).Save(&user).Error
+}
+
+func (r *repository) GetStoreApis(ctx context.Context, user_id string) ([]models.API, error) {
+	var apis []models.API
+	if err := r.db.Where("provider_id = ?", user_id).
+		Find(&apis).Error; err != nil {
+		return nil, err
+	}
+
+	return apis, nil
+}
+
+func (r *repository) GetApiVersionsSubsCount(ctx context.Context, apiID string) (int, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).
+		Model(&models.Subscription{}).
+		Joins("JOIN api_versions ON api_versions.id = subscriptions.api_version_id").
+		Where("api_versions.api_id = ?", apiID).
+		Where("subscriptions.deleted_at IS NULL").
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count), nil
 }

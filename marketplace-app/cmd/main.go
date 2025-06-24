@@ -14,6 +14,7 @@ import (
 	"github.com/ZXstrike/marketplace-app/internal/config"
 	"github.com/ZXstrike/marketplace-app/internal/database"
 	"github.com/ZXstrike/marketplace-app/internal/routes"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -42,8 +43,17 @@ func StartServer(Port string, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicK
 
 	gin.SetMode(gin.DebugMode)
 
+	config := cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173"}, // The origin of your Vue app
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}
+
 	// Add middlewares
-	router.Use(gin.Recovery(), gin.Logger())
+	router.Use(gin.Recovery(), gin.Logger(), cors.New(config))
 
 	// Initialize app routes
 	routes.InitRoutes(router, db, privateKey, publicKey)

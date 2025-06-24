@@ -20,6 +20,7 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 	user := r.Group("/user")
 	{
 		user.GET("/:id", h.UserProfileHandler)
+		user.GET("/me", middleware.AuthMiddleware(publicKey), h.GetMyProfileHandler)
 		user.PUT("/update", middleware.AuthMiddleware(publicKey), h.UpdateUserProfileHandler)
 		user.PUT("/change-password", middleware.AuthMiddleware(publicKey), h.ChangePasswordHandler)
 		user.POST("/update-profile-picture", middleware.AuthMiddleware(publicKey), h.UpdateProfilePictureHandler)

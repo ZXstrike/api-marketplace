@@ -26,7 +26,7 @@ func New(db *gorm.DB) Repository {
 
 func (r *repository) GetByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
-	err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error
+	err := r.db.WithContext(ctx).Preload("Roles").First(&user, "id = ?", id).Error
 	return &user, err
 }
 

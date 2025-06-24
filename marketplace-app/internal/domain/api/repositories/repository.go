@@ -7,13 +7,14 @@ import (
 
 type Repository interface {
 	GetUserByID(id string) (*models.User, error)
-	CreateAPI(api models.API, pricePercall float64) error
+	CreateAPI(api models.API, pricePercall float64) (string, error)
 	GetAPIByID(id string) (*models.API, error)
 	GetAllAPI(page int, length int) ([]models.API, error)
 	GetAllAPIByUserID(userID string) ([]models.API, error)
 	UpdateAPI(api models.API) error
 	DeleteAPI(id string) error
 	GetCategoryBySlug(slug string) (*models.Category, error)
+	GetAllCategories() ([]models.Category, error)
 	GetAPIVersionByID(id string) (*models.APIVersion, error)
 	CreateAPIEndpoint(apiEndpoint models.Endpoint) error
 	GetAPIEndpointByID(id string) (*models.Endpoint, error)
@@ -43,10 +44,10 @@ func (r *repository) GetUserByID(id string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *repository) CreateAPI(api models.API, pricePercall float64) error {
+func (r *repository) CreateAPI(api models.API, pricePercall float64) (string, error) {
 
 	if err := r.db.Create(&api).Error; err != nil {
-		return err
+		return "", err
 	}
 
 	apiVersion := models.APIVersion{
@@ -57,10 +58,14 @@ func (r *repository) CreateAPI(api models.API, pricePercall float64) error {
 	}
 
 	if err := r.db.Create(&apiVersion).Error; err != nil {
-		return err
+		return "", err
 	}
 
-	return r.db.Model(&api).Association("Versions").Append(&apiVersion)
+	if err := r.db.Model(&api).Association("Versions").Append(&apiVersion); err != nil {
+		return "", err
+	}
+
+	return apiVersion.ID, nil
 }
 
 func (r *repository) GetAPIByID(id string) (*models.API, error) {
@@ -87,7 +92,9 @@ func (r *repository) GetAllAPI(page int, length int) ([]models.API, error) {
 	err := r.db.
 		Preload("Provider").
 		Preload("Categories").
-		Offset((page - 1) * length).Limit(length).
+		Preload("Versions.Endpoints").
+		Offset((page - 1) * length).
+		Limit(length).
 		Find(&apis).Error
 
 	if err != nil {
@@ -128,6 +135,14 @@ func (r *repository) GetCategoryBySlug(slug string) (*models.Category, error) {
 		return nil, err
 	}
 	return &category, nil
+}
+
+func (r *repository) GetAllCategories() ([]models.Category, error) {
+	var categories []models.Category
+	if err := r.db.Find(&categories).Error; err != nil {
+		return nil, err
+	}
+	return categories, nil
 }
 
 func (r *repository) GetAPIVersionByID(id string) (*models.APIVersion, error) {
