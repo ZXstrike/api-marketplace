@@ -63,6 +63,7 @@ import ApiNavigation from '@/components/details/ApiNavigation.vue';
 import EndpointList from '@/components/details/EndpointList.vue';
 import EndpointDetail from '@/components/details/EndpointDetail.vue';
 import PricingDetail from '@/components/details/PricingDetail.vue';
+import router from '@/router/index';
 
 const route = useRoute();
 const api = ref(null);
@@ -140,6 +141,7 @@ const handleSubscribe = async () => {
     }
 
     alert(data.message || "Successfully subscribed!");
+    router.push('/dashboard'); // Redirect to dashboard after subscription
     // You might want to refresh the API details here to update the UI
     // await fetchApiDetails(route.params.id);
   } catch (error) {

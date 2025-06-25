@@ -10,23 +10,42 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ZXstrike/api-gateway/internal/config"
+	"github.com/ZXstrike/api-gateway/internal/database"
 	"github.com/ZXstrike/api-gateway/internal/routers"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 func main() {
-	startServer("8080", nil) // Replace nil with actual DB connection if needed
+	config, er := config.LoadConfig()
+	if er != nil {
+		log.Fatalf("Error loading config: %v", er)
+	}
+
+	// InitializeDatabase()
+	db, er := database.PostgresConnect(&config.PostgresConfig)
+	if er != nil {
+		log.Fatalf("Error connecting to database: %v", er)
+	}
+
+	redis, er := database.RedisConnect(&config.RedisConfig)
+	if er != nil {
+		log.Fatalf("Error connecting to Redis: %v", er)
+	}
+
+	startServer(config.ServerPort, db, redis) // Replace nil with actual DB connection if needed
 }
 
-func startServer(port string, db *gorm.DB) {
+func startServer(port string, db *gorm.DB, redis *redis.Client) {
 	router := gin.New()
 
 	// Add middlewares
 	router.Use(gin.Recovery(), gin.Logger())
 
 	// Initialize app routes
-	routers.InitRoutes(router, db, nil) // Replace nil with actual Redis client if needed
+	routers.InitRoutes(router, db, redis) // Replace nil with actual Redis client if needed
 
 	// Create an HTTP server using the Gin router
 	srv := &http.Server{

@@ -6,3 +6,4 @@ tree.txt
 .vscode/
 API Marketplace/environments/DEV.bru
 files
+/persistent

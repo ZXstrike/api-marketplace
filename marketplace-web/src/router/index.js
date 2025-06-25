@@ -78,7 +78,9 @@ router.beforeEach(async (to, from, next) => {
     } catch (error) {
       console.error("Unexpected error during token refresh:", error);
       authStore.logout(); // Jika ada error lain, logout pengguna
-      next({ name: "login" }); // Arahkan ke halaman login
+      if (to.meta.requiresAuth) {
+        next({ name: "login" }); // Arahkan ke halaman login
+      }
     }
   } else {
     next();

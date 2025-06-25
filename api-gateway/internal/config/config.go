@@ -45,16 +45,23 @@ func LoadConfig() (*AppConfig, error) {
 	}
 
 	Config = &AppConfig{
-		ServerPort: os.Getenv("SERVER_PORT"),
+		ServerPort: os.Getenv("GATEWAY_PORT"),
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
 		PostgresConfig: PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
 			Port:     os.Getenv("POSTGRES_PORT"),
-			User:     os.Getenv("POSTGRES_DB"),
+			User:     os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("POSTGRES_PASSWORD"),
 			Database: os.Getenv("POSTGRES_DATABASE"),
 		},
+	}
+
+	Config.RedisConfig = RedisConfig{
+		Host:     os.Getenv("REDIS_HOST"),
+		Port:     os.Getenv("REDIS_PORT"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		Database: 0, // Default Redis database
 	}
 
 	return Config, nil

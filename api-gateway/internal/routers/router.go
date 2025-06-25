@@ -5,7 +5,7 @@ import (
 
 	"github.com/ZXstrike/api-gateway/internal/proxy"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -21,10 +21,10 @@ func InitRoutes(router *gin.Engine, db *gorm.DB, redisClient *redis.Client) {
 			return
 		}
 		// Check Redis connection
-		if err := redisClient.Ping().Err(); err != nil {
+		if err := redisClient.Ping(c.Request.Context()).Err(); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": "error",
-				"error":  "Redis connection failed",
+				"error":  err,
 			})
 			return
 		}
@@ -36,7 +36,8 @@ func InitRoutes(router *gin.Engine, db *gorm.DB, redisClient *redis.Client) {
 
 	apiGroup := router.Group("/api", // Add any middleware here if needed
 		gin.Recovery(),
-		gin.Logger())
+		gin.Logger(),
+	)
 
-	apiGroup.Any("/*", proxy.ProxyHandler(db, redisClient))
+	apiGroup.Any("/*proxyPath", proxy.ProxyHandler(db, redisClient))
 }

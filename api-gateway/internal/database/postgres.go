@@ -5,10 +5,12 @@ import (
 	"log"
 
 	"github.com/ZXstrike/api-gateway/internal/config"
-	"github.com/ZXstrike/api-gateway/internal/models"
+	"github.com/ZXstrike/shared/pkg/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+var PostgresDB *gorm.DB
 
 func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 
@@ -26,6 +28,8 @@ func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 	}
 
 	migration(db)
+
+	PostgresDB = db
 
 	return db, nil
 }
@@ -49,9 +53,13 @@ func migration(db *gorm.DB) {
 		&models.ProviderPayout{},
 		// &models.RateLimitCounter{},  // optional: drop if using pure Redis
 	)
+
 	if err != nil {
 		log.Fatalf("migration failed: %v", err)
 	}
+
+	// Create default roles if they don't exist
+	models.GenerateCategories(db)
 
 	log.Println("✅ database migrated successfully")
 }

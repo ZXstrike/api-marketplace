@@ -89,11 +89,10 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import apiClient from '@/services/apiClient.js';
 
 const route = useRoute();
-const router = useRouter();
 
 const loading = ref(true);
 const isSaving = ref(false);
