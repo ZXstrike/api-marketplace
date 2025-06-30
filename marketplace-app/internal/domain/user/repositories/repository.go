@@ -12,7 +12,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	Update(ctx context.Context, id string, description string) error
-	ChangePassword(ctx context.Context, id string, newPass string) error
+	ChangePassword(ctx context.Context, id string, oldPass string, newPass string) error
 	UpdateProfilePicture(ctx context.Context, id string, newProfilePicture string) error
 }
 
@@ -46,8 +46,28 @@ func (r *repository) Update(ctx context.Context, id string, description string) 
 
 }
 
-func (r *repository) ChangePassword(ctx context.Context, id string, newPass string) error {
+func (r *repository) ChangePassword(ctx context.Context, id string, oldPass string, newPass string) error {
 	var user models.User
+
+	// Fetch the user by ID
+	err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error
+	if err != nil {
+		return err
+	}
+
+	// Check if the old password matches
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPass)); err != nil {
+		return err
+	}
+
+	// Generate the new password hash
+	if len(newPass) < 8 {
+		return gorm.ErrInvalidData // or a custom error indicating password too short
+	}
+
+	if newPass == oldPass {
+		return gorm.ErrInvalidData // or a custom error indicating new password must be different
+	}
 
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
 	if err != nil {

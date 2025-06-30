@@ -27,6 +27,12 @@ const routes = [
     },
   },
   {
+    path: "/settings",
+    name: "settings",
+    component: () => import("@/views/SettingsView.vue"),
+    meta: { requiresAuth: true }, // meta field untuk proteksi route
+  },
+  {
     path: "/browse",
     name: "browse",
     component: () => import("@/views/BrowseApisView.vue"),

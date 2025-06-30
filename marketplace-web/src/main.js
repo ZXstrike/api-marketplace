@@ -6,9 +6,7 @@ import router from './router'
 
 // Import global styles
 import './assets/main.css'
-
-// Import third-party scripts that need to run after Vue is ready
-// We will call these from App.vue instead to ensure they run after each route change
+import 'highlight.js/styles/atom-one-dark.css';
 
 const app = createApp(App)
 

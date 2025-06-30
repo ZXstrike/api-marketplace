@@ -12,7 +12,7 @@ import (
 type Service interface {
 	GetUserProfile(ctx context.Context, id string) (*models.User, error)
 	UpdateUserProfile(ctx context.Context, id string, description string) error
-	ChangeUserPassword(ctx context.Context, id string, newPass string) error
+	ChangeUserPassword(ctx context.Context, id string, oldPass string, newPass string) error
 	UpdateUserProfilePicture(ctx context.Context, id string, file *multipart.FileHeader) (string, error)
 }
 
@@ -36,8 +36,8 @@ func (s *service) UpdateUserProfile(ctx context.Context, id string, description 
 	return s.repo.Update(ctx, id, description)
 }
 
-func (s *service) ChangeUserPassword(ctx context.Context, id string, newPass string) error {
-	return s.repo.ChangePassword(ctx, id, newPass)
+func (s *service) ChangeUserPassword(ctx context.Context, id string, oldPass string, newPass string) error {
+	return s.repo.ChangePassword(ctx, id, oldPass, newPass)
 }
 
 func (s *service) UpdateUserProfilePicture(ctx context.Context, id string, file *multipart.FileHeader) (string, error) {

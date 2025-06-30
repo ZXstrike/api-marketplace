@@ -6,8 +6,11 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	"github.com/ZXstrike/marketplace-app/internal/domain/api_key/repositories"
+	"github.com/ZXstrike/shared/pkg/models"
+	"gorm.io/gorm"
 )
 
 // NOTE: I have removed the unused ecdsa.PrivateKey and ecdsa.PublicKey for clarity.
@@ -81,4 +84,41 @@ func generateSecureKey(prefix string) (string, []byte, error) {
 	fullKey := fmt.Sprintf("%s_%s", prefix, keyString)
 	hash := sha256.Sum256([]byte(fullKey))
 	return fullKey, hash[:], nil
+}
+
+// ValidateAPIKey finds a key in the database based on the provided plaintext string.
+// It returns the valid APIKey object if found, otherwise an error.
+func ValidateAPIKey(db *gorm.DB, keyString string) (*models.APIKey, error) {
+	// 1. Ensure the key string is not empty.
+	if keyString == "" {
+		return nil, fmt.Errorf("API key cannot be empty")
+	}
+
+	// 2. Split the key to get the prefix. The format is assumed to be "prefix_randompart".
+	parts := strings.SplitN(keyString, "_", 2)
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid API key format")
+	}
+	prefix := parts[0]
+
+	// 3. Hash the entire incoming key string to match what's in the database.
+	incomingKeyHash := sha256.Sum256([]byte(keyString))
+
+	// 4. Query the database for the key.
+	// This query is highly efficient as it can use a composite index
+	// on (key_prefix, key_value_hash) or individual indexes on both.
+	var apiKey models.APIKey
+	err := db.Where("key_prefix = ? AND key_value_hash = ?", prefix, incomingKeyHash[:]).First(&apiKey).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// This is the "invalid key" case.
+			return nil, fmt.Errorf("invalid API key")
+		}
+		// This is a different, unexpected database error.
+		return nil, fmt.Errorf("database error validating key: %w", err)
+	}
+
+	// 5. Key is valid and found. Return the model instance.
+	return &apiKey, nil
 }

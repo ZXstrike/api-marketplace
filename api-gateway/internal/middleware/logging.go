@@ -5,10 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/ZXstrike/shared/pkg/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func LoggingMiddleware(logger *log.Logger) gin.HandlerFunc {
+func LoggingMiddleware(logger *log.Logger, db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		start := time.Now()
@@ -42,6 +44,21 @@ func LoggingMiddleware(logger *log.Logger) gin.HandlerFunc {
 		logger.Println(logEntry)
 
 		if statusCode >= 200 && statusCode < 300 {
+			apiKey, exists := c.Get("api_key")
+			if !exists {
+				logger.Println("No API key found in context")
+				return
+			}
+
+			logEntry := models.UsageLog{
+				SubscriptionID:   apiKey.(*models.APIKey).Subscription.ID,
+				APIKeyID:         apiKey.(*models.APIKey).ID,
+				RequestTimestamp: start,
+			}
+
+			if err := db.Create(&logEntry).Error; err != nil {
+				logger.Printf("Error logging usage: %v", err)
+			}
 
 		} else {
 		}

@@ -59,8 +59,9 @@ type Category struct {
 type API struct {
 	Base
 	ID          string       `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
-	ProviderID  string       `json:"provider_id" gorm:"type:uuid;not null;index"`
+	ProviderID  string       `json:"provider_id" gorm:"type:uuid;not null;uniqueIndex:idx_provider_slug"`
 	Provider    User         `json:"provider,omitempty" gorm:"foreignKey:ProviderID"`
+	Slug        string       `json:"slug" gorm:";uniqueIndex:idx_provider_slug"`
 	Name        string       `json:"name" gorm:"not null"`
 	IconURL     string       `json:"icon_url" gorm:"type:varchar(255)"`
 	Description string       `json:"description" gorm:"type:text"`

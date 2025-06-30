@@ -56,6 +56,11 @@ func (s *service) CreateNewAPI(name string, desc string, providerId string, base
 		return "", errors.New("invalid base URL format")
 	}
 
+	slug := models.GenerateSlug(name)
+	if slug == "" {
+		return "", errors.New("failed to generate slug for API name")
+	}
+
 	api := models.API{
 		Name:        name,
 		Description: desc,

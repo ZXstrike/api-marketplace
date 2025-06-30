@@ -15,7 +15,7 @@ gen-keys:
 	@./shared/secrets/generate_ecdsa_keys.sh
 
 dev-up:
-	@podman-compose up -d
+	@docker compose up -d
 
 run-gateway:
 	@cd api-gateway && go run cmd/main.go

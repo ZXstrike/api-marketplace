@@ -1,8 +1,8 @@
 <template>
     <div class="w-full flex justify-center">
-        <main class="container mx-auto px-6 py-8 md:py-12">
-            <div class="max-w-3xl mx-auto">
-                <router-link to="/dashboard/provider" class="text-blue-600 hover:underline flex items-center mb-4">
+        <main class="container justify-items-center mx-auto px-6 py-8 md:py-12">
+            <div class=" md:w-3xl mx-auto">
+                <router-link to="/dashboard" class="text-blue-600 hover:underline flex items-center mb-4">
                     <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
                     Back to Dashboard
                 </router-link>
@@ -11,7 +11,7 @@
                     marketplace.</p>
             </div>
 
-            <form v-if="currentStep === 1" @submit.prevent="handleCreateApi" class="space-y-8 max-w-3xl mx-auto mt-8">
+            <form v-if="currentStep === 1" @submit.prevent="handleCreateApi" class="space-y-8 md:w-3xl mx-auto mt-8">
                 <div class="dashboard-card">
                     <h2 class="section-heading">Step 1: API Details & Pricing</h2>
                     <div class="space-y-6">
@@ -61,7 +61,7 @@
 
             <!-- Step 2 Form -->
             <form v-if="currentStep === 2" @submit.prevent="handleCreateEndpoints"
-                class="space-y-8 max-w-3xl mx-auto mt-8">
+                class="space-y-8 md:w-3xl mx-auto mt-8">
                 <div class="dashboard-card">
                     <h2 class="section-heading">Step 2: Define Endpoints for {{ apiData.name }}</h2>
                     <div id="endpoints-list" class="space-y-4 mb-6">
@@ -207,7 +207,7 @@ const handleCreateEndpoints = async () => {
         if (!response.ok) throw new Error(data.message || 'Failed to create endpoints.');
 
         alert(data.message || "API and endpoints published successfully!");
-        router.push('/dashboard/provider');
+        router.push('/dashboard');
 
     } catch (error) {
         console.error("Error creating endpoints:", error);

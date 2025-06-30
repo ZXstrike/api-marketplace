@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen w-full items-center justify-center">
+  <div class="flex min-h-screen w-full  justify-center">
     <main class="container mx-auto px-6 py-8 md:py-12">
       <div v-if="loading" class="text-center py-16">
         <p>Loading API details...</p>
@@ -81,7 +81,7 @@ const selectedVersion = computed(() => {
 
 const dynamicBaseUrl = computed(() => {
   if (!api.value || !api.value.provider) return '';
-  return `https://${api.value.provider.username}.api.zxsttm.tech`;
+  return `https://${api.value.provider.username}.api.zxsttm.tech/${api.value.slug}`;
 });
 
 
@@ -112,7 +112,7 @@ const fetchEndpoints = async (versionId) => {
     // FIX: Menggunakan apiClient.get untuk mengambil endpoint
     const response = await apiClient.get(`/api/api-endpoints/${versionId}`);
     const data = await response.json();
-    endpoints.value = data;
+    endpoints.value = data.reverse(); // Reverse the order to show the latest first
 
     if (endpoints.value.length > 0) {
       selectedEndpoint.value = endpoints.value[0];

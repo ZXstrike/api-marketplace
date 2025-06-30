@@ -67,6 +67,7 @@ func (h *Handler) UpdateUserProfileHandler(c *gin.Context) {
 
 func (h *Handler) ChangePasswordHandler(c *gin.Context) {
 	var req struct {
+		OldPassword string `json:"old_password" binding:"required,min=8"`
 		NewPassword string `json:"new_password" binding:"required,min=8"`
 	}
 
@@ -81,7 +82,7 @@ func (h *Handler) ChangePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err := h.service.ChangeUserPassword(c.Request.Context(), userID.(string), req.NewPassword)
+	err := h.service.ChangeUserPassword(c.Request.Context(), userID.(string), req.OldPassword, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to change password"})
 		return

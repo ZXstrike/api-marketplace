@@ -29,7 +29,7 @@ func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 
 	migration(db)
 
-	PostgresDB = db
+	PostgresDB = db.Order(db.Order("created_at DESC"))
 
 	return db, nil
 }
