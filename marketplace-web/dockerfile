@@ -5,7 +5,7 @@ FROM oven/bun:1-alpine as build
 WORKDIR /app
 
 # Copy package.json and bun.lockb to leverage Docker cache
-COPY package.json bun.lockb ./
+COPY package.json ./
 
 # Install dependencies
 RUN bun install
