@@ -15,7 +15,7 @@ func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 		// You can implement your billing logic here, such as checking if the user's subscription is active,
 		// if they have sufficient balance, etc.
 
-		c.Next() // Proceed to the next middleware or handler
+		c.Next() // Proceed to the next middleware or handler 
 
 		if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
 			apiKey, exists := c.Get("api_key")
