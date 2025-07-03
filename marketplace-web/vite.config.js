@@ -22,6 +22,7 @@ export default defineConfig({
     allowedHosts:[
       'app.test',
       '.app.test',
+      'touched-diverse-parakeet.ngrok-free.app'
     ]
   }
 })
