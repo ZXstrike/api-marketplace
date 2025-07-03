@@ -1,45 +1,30 @@
-# Stage 1: Build the Vue.js application
-FROM oven/bun:1-alpine as build
+# Build stage
+FROM golang:1.24-alpine AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and bun.lockb to leverage Docker cache
-COPY package.json ./
+# Copy and download dependencies separately (better caching)
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Install dependencies
-RUN bun install
-
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Build the Vue.js application for production
-RUN bun run build
+# Build the application, pointing to the ./cmd directory
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o marketplace-app ./cmd
 
-# Stage 2: Serve the application
-FROM oven/bun:1-alpine
+# Final stage - minimal image
+FROM alpine:latest
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the built assets from the 'build' stage
-COPY --from=build /app/dist .
+# Create non-root user
+RUN adduser -D appuser
+USER appuser
 
-# Expose the port the app will run on
-EXPOSE 8080
+# Copy only the binary from builder
+COPY --from=builder /app/marketplace-app .
 
-# Command to serve the static files
-# You might need to install a simple server if your project doesn't have one.
-# For this example, we'll use 'serve', which you might need to add to your project's dependencies.
-# If you don't have 'serve', you can install it globally in the Docker image or use another server.
-# Add "serve": "bunx serve -s -l 8080" to your package.json scripts
-# or install it globally: RUN bun add -g serve
-# For this example, we assume you have a 'start' script in your package.json
-# that serves the 'dist' folder.
+EXPOSE 80
 
-# A simple way to serve is using Python's built-in HTTP server if available
-# For a more robust solution, consider a production-grade static server.
-CMD ["python", "-m", "http.server", "8080"]
-
-# If you have 'serve' in your dependencies, you can use:
-# CMD ["bunx", "serve", "-s", "-l", "8080", "."]
+CMD ["./marketplace-app"]
