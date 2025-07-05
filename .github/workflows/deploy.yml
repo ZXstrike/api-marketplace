@@ -33,5 +33,5 @@ jobs:
         run: |
           echo "✅ Code checked out. Running deployment tasks..."
           # --- ADD YOUR COMMANDS BELOW ---
-          make prod-up
+          sudo make prod-up
           echo "🎉 Deployment script finished."
