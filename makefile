@@ -67,7 +67,8 @@ dev-down:
 
 prod-up:
 	@echo "Starting production services with Docker Compose..."
-	@docker-compose -f docker-compose.prod.yml up -d --build
+	@docker-compose -f docker-compose.prod.yml up -d --no-deps --build
+	@echo "Done..."
 
 prod-down:
 	@echo "Stopping production services..."

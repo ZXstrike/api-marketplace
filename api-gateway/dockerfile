@@ -1,40 +1,33 @@
 # ---- Build Stage ----
-# Use a specific Go version for reproducible builds
 FROM golang:1.24-alpine AS builder
-
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy dependency files and download them.
-# This step is cached and only runs when go.mod or go.sum changes.
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy workspace and module files
+COPY go.work go.work.sum ./
+COPY api-gateway/ ./api-gateway/
+COPY marketplace-app/ ./marketplace-app/
+COPY shared/ ./shared/
+COPY .env .
 
-# Copy the rest of the source code
-COPY . .
-
-# Build the Go application, creating a static binary.
-# The output binary is named "app" and we point the build to our main package in ./cmd
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o app ./cmd
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/bin/gateway ./api-gateway/cmd
 
 # ---- Final Stage ----
-# Use a minimal, non-root alpine image for the final container
 FROM alpine:latest
-
-# Set the working directory
 WORKDIR /app
-
-# Create a non-root user and group for security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Switch to the non-root user
+RUN adduser -D appuser
 USER appuser
 
-# Copy only the compiled binary from the builder stage
-COPY --from=builder /app/app .
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/bin/gateway .
 
-# Expose the port the application will run on (e.g., 8080)
-EXPOSE 8080
+# Copy the .env file from the builder stage
+COPY --from=builder /app/.env .
 
-# The command to run the application
-CMD ["./app"]
+#
+# CORRECTED PATH 👇
+#
+# Copy the secrets directory from the builder stage
+COPY --from=builder /app/shared/ ./shared/
+
+CMD ["./gateway"]

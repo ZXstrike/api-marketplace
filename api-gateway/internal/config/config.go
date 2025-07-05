@@ -6,6 +6,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
@@ -37,6 +39,10 @@ func LoadConfig() (*AppConfig, error) {
 	// Load configuration from environment variables or a config file
 	// For simplicity, we are hardcoding the values here
 
+	err := godotenv.Load()
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %w", err)
+	}
 	// Load the private and public keys here
 	privateKey, publicKey, err := LoadECDSAKeys()
 
