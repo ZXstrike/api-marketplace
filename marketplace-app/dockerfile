@@ -2,32 +2,39 @@
 FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
-# Copy workspace and module files
+# Copy workspace and all necessary module source code
 COPY go.work go.work.sum ./
 COPY api-gateway/ ./api-gateway/
 COPY marketplace-app/ ./marketplace-app/
 COPY shared/ ./shared/
+
+# Copy runtime assets needed for the final image
 COPY .env .
+COPY shared/pkg/secrets/ ./secrets/
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/bin/marketplace ./marketplace-app/cmd
 
+
 # ---- Final Stage ----
-FROM alpine:latest
+FROM alpine:3.20
+
 WORKDIR /app
-RUN adduser -D appuser
+
+# Create a non-root user and group for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copy ONLY necessary files from the builder stage and set the correct ownership.
+# This --chown flag is the definitive fix for the 'permission denied' error.
+COPY --from=builder --chown=appuser:appgroup /app/bin/marketplace .
+COPY --from=builder --chown=appuser:appgroup /app/.env .
+COPY --from=builder --chown=appuser:appgroup /app/secrets/ ./secrets/
+
+# Switch to the non-root user to run the application
 USER appuser
 
-# Copy the compiled binary from the builder stage
-COPY --from=builder /app/bin/marketplace .
+# Expose the port the application will run on (e.g., 8081)
+EXPOSE 8081
 
-# Copy the .env file from the builder stage
-COPY --from=builder /app/.env .
-
-#
-# CORRECTED PATH 👇
-#
-# Copy the secrets directory from the builder stage
-COPY --from=builder /app/shared/ ./shared/
-
+# The command to run the application
 CMD ["./marketplace"]
