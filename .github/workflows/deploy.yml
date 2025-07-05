@@ -30,8 +30,42 @@ jobs:
       # Step 2: Add your script commands here
       # This is where you tell your VPS what to do after getting the new code.
       - name: Execute Deployment Script
+        env:
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          GATEWAY_PORT: ${{ secrets.GATEWAY_PORT }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_DATABASE: ${{ secrets.REDIS_DATABASE }}
+          ECDSA_PRIVATE_KEY_PATH: ${{ secrets.ECDSA_PRIVATE_KEY_PATH }}
+          ECDSA_PUBLIC_KEY_PATH: ${{ secrets.ECDSA_PUBLIC_KEY_PATH }}
         run: |
-          echo "✅ Code checked out. Running deployment tasks..."
-          # --- ADD YOUR COMMANDS BELOW ---
-          sudo make prod-up
+          echo "✅ Creating .env file..."
+          echo "
+          SERVER_PORT=${SERVER_PORT}
+          GATEWAY_PORT=${GATEWAY_PORT}
+          POSTGRES_HOST=${POSTGRES_HOST}
+          POSTGRES_PORT=${POSTGRES_PORT}
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          POSTGRES_DATABASE=${POSTGRES_DATABASE}
+          REDIS_HOST=${REDIS_HOST}
+          REDIS_PORT=${REDIS_PORT}
+          REDIS_PASSWORD=${REDIS_PASSWORD}
+          REDIS_DATABASE=${REDIS_DATABASE}
+          ECDSA_PRIVATE_KEY_PATH=${ECDSA_PRIVATE_KEY_PATH}
+          ECDSA_PUBLIC_KEY_PATH=${ECDSA_PUBLIC_KEY_PATH}
+          " > .env
+
+          echo "Generating secrets..."
+          ./secrets/generate_ecdsa_keys.sh
+          echo "✅ Secrets generated successfully."
+
+          echo "🚀 Running deployment tasks..."
+          make prod-up
           echo "🎉 Deployment script finished."
