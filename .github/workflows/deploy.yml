@@ -61,10 +61,11 @@ jobs:
           ECDSA_PRIVATE_KEY_PATH=${ECDSA_PRIVATE_KEY_PATH}
           ECDSA_PUBLIC_KEY_PATH=${ECDSA_PUBLIC_KEY_PATH}
           " > .env
+          echo "✅ .env file created successfully."
 
-          echo "Generating secrets..."
-          ./secrets/generate_ecdsa_keys.sh
-          echo "✅ Secrets generated successfully."
+          echo "🔑 Generating ECDSA keys..."
+          ./shared/secrets/generate_ecdsa_keys.sh
+          echo "✅ ECDSA keys generated successfully."
 
           echo "🚀 Running deployment tasks..."
           make prod-up
