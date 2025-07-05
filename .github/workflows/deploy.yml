@@ -9,10 +9,10 @@ on:
   # 2. ADDED: Allows you to trigger this manually from the "Actions" tab
   workflow_dispatch:
 
-  # # 3. ADDED: Triggers automatically on a schedule
-  # schedule:
-  #   # This runs at 9:00 AM WIB every Sunday (2:00 AM UTC)
-  #   - cron: '0 2 * * 0'
+  # 3. ADDED: Triggers automatically on a schedule
+  schedule:
+    # This runs at 9:00 AM WIB every Sunday (2:00 AM UTC)
+    - cron: '0 2 * * 0'
 
 jobs:
   build-and-deploy:
