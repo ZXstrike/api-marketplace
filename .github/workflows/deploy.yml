@@ -1,0 +1,32 @@
+name: Deploy on new commit
+
+# This workflow runs on any push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    # This is the crucial line that tells GitHub to use your VPS
+    runs-on: self-hosted
+
+    steps:
+      - name: Print starting message
+        run: echo "🚀 Starting deployment for new commit on api-marketplace..."
+
+      # Step 1: Checks out your repository code onto your VPS runner
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Add your script commands here
+      # This is where you tell your VPS what to do after getting the new code.
+      - name: Execute Deployment Script
+        run: |
+          echo "✅ Code checked out. Running deployment tasks..."
+          # --- ADD YOUR COMMANDS BELOW ---
+          # For example, if you have a deployment script at /home/tamaki/deploy-api.sh
+          
+          make prod-up
+          
+          echo "🎉 Deployment script finished."
