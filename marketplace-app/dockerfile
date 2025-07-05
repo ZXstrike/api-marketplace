@@ -10,7 +10,7 @@ COPY shared/ ./shared/
 
 # Copy runtime assets needed for the final image
 COPY .env .
-COPY shared/secrets/ ./secrets/
+COPY secrets/ ./secrets/
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /app/bin/marketplace ./marketplace-app/cmd
