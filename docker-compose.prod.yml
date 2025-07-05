@@ -49,7 +49,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DATABASE}
     volumes:
-      - ./home/tamaki/docker_data/persistent_data/postgres:/var/lib/postgresql/data
+      - ./home/tamaki/docker-persistent-data/api-market/postgres:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -58,7 +58,7 @@ services:
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
-      - ./home/tamaki/docker_data/persistent_data/redis-data:/data
+      - ./home/tamaki/docker-persistent-data/api-market/redis-data:/data
     networks:
       - backend
 
