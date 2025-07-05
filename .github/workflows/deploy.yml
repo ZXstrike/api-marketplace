@@ -64,7 +64,8 @@ jobs:
           echo "✅ .env file created successfully."
 
           echo "🔑 Generating ECDSA keys..."
-          sudo ./shared/secrets/generate_ecdsa_keys.sh
+          chmod +x ./shared/secrets/generate_ecdsa_keys.sh
+          ./shared/secrets/generate_ecdsa_keys.sh
           echo "✅ ECDSA keys generated successfully."
 
           echo "🚀 Running deployment tasks..."
