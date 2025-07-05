@@ -69,5 +69,5 @@ jobs:
           echo "✅ ECDSA keys generated successfully."
 
           echo "🚀 Running deployment tasks..."
-          make prod-up
+          sudo make prod-up
           echo "🎉 Deployment script finished."
