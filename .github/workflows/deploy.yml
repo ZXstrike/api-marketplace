@@ -31,6 +31,7 @@ jobs:
       # This is where you tell your VPS what to do after getting the new code.
       - name: Execute Deployment Script
         env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           GATEWAY_PORT: ${{ secrets.GATEWAY_PORT }}
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
@@ -64,7 +65,7 @@ jobs:
           " > .env
           echo "✅ .env file created successfully."
 
-          echo "VITE_API_BASE_URL=${SERVER_PORT}" > marketplace-web/.env
+          echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" > marketplace-web/.env
 
           echo "🔑 Generating ECDSA keys..."
           chmod +x ./shared/secrets/generate_ecdsa_keys.sh
