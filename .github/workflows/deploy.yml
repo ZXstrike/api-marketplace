@@ -63,6 +63,8 @@ jobs:
           " > .env
           echo "✅ .env file created successfully."
 
+          echo "VITE_API_BASE_URL=${SERVER_PORT}" > marketplace-web/.env
+
           echo "🔑 Generating ECDSA keys..."
           chmod +x ./shared/secrets/generate_ecdsa_keys.sh
           ./shared/secrets/generate_ecdsa_keys.sh

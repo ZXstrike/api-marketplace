@@ -20,8 +20,7 @@ export default defineConfig({
   server:{
     host:true,
     allowedHosts:[
-      'app.test',
-      '.app.test',
+      'zxsttm.tech',
       'touched-diverse-parakeet.ngrok-free.app'
     ]
   }
