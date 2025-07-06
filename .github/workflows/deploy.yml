@@ -44,6 +44,7 @@ jobs:
           REDIS_DATABASE: ${{ secrets.REDIS_DATABASE }}
           ECDSA_PRIVATE_KEY_PATH: ${{ secrets.ECDSA_PRIVATE_KEY_PATH }}
           ECDSA_PUBLIC_KEY_PATH: ${{ secrets.ECDSA_PUBLIC_KEY_PATH }}
+          
         run: |
           echo "✅ Creating .env file..."
           echo "

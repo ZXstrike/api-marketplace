@@ -59,25 +59,25 @@ gen-keys:
 
 dev-up:
 	@echo "Starting services with Docker Compose..."
-	@docker-compose up -d
+	@docker compose up -d
 
 dev-down:
 	@echo "Stopping services..."
-	@docker-compose down
+	@docker compose down
 
 prod-up:
 	@echo "Starting production services with Docker Compose..."
-	@docker-compose -f docker-compose.prod.yml down
-	@docker-compose -f docker-compose.prod.yml up -d --build --force-recreate
+	@docker compose -f docker-compose.prod.yml down
+	@docker compose -f docker-compose.prod.yml up -d --build --force-recreate
 	@echo "Done..."
 
 prod-down:
 	@echo "Stopping production services..."
-	@docker-compose -f docker-compose.prod.yml down
+	@docker compose -f docker-compose.prod.yml down
 
 build-prod:
 	@echo "Building production Docker images..."
-	@docker-compose -f docker-compose.prod.yml build
+	@docker compose -f docker-compose.prod.yml build
 
 migrate:
 	@echo "Running database migrations..."
