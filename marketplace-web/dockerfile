@@ -1,5 +1,5 @@
 # Stage 1: Build the Vue application using Bun
-FROM oven/bun:1 AS builder
+FROM oven/bun:latest AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 
 # Install dependencies
-RUN bun install --frozen-lockfile --verbose
+RUN bun install --frozen-lockfile --verbose --no-progress
 
 # Copy the rest of the application source code
 COPY . .
