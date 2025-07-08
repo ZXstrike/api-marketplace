@@ -43,14 +43,11 @@ func StartServer(Port string, db *gorm.DB, privateKey *ecdsa.PrivateKey, publicK
 
 	gin.SetMode(gin.DebugMode)
 
-	config := cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://app.test", "https://zxsttm.tech", "https://api-market-be.zxsttm.live"}, // The origin of your Vue app
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"}
+	config.AllowCredentials = true
 
 	// Add middlewares
 	router.Use(gin.Recovery(), gin.Logger(), cors.New(config))
