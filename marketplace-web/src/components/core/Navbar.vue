@@ -17,7 +17,7 @@
       <div v-if="authStore.isLoggedIn" class=" lg:flex items-center gap-6">
             <router-link v-if="authStore.user.role !== 'provider'" to="/browse" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">APIs</router-link>
           <router-link to="/dashboard" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Dashboard</router-link>
-          <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Docs</a>
+          <router-link to="/docs" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Docs</router-link>
       </div>
 
 

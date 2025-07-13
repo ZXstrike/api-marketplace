@@ -1,14 +1,19 @@
 <template>
-  <section class="space-y-6">
+  <section class="flex flex-col gap-3">
     <h1 class="text-3xl font-bold">Billing & Usage</h1>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="dashboard-card lg:col-span-1">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div class="dashboard-card lg:col-span-1 text-center flex flex-col justify-center gap-4">
         <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Current Balance</h3>
-        <p class="text-4xl font-bold mt-2 text-green-500">$42.50</p>
+        <p class="text-4xl font-bold mt-2 text-green-500">
+          {{ new Intl.NumberFormat('id-ID', {
+            style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+          }).format(userBalance || 0) }}
+        </p>
         <p class="text-sm text-gray-500 mt-2">This balance is used for all Pay-As-You-Go API calls.</p>
-        <button
-          class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md">Top-Up
-          Balance</button>
+        <button class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md"
+          @click="$emit('top-up')">
+          Top Up Balance
+        </button>
       </div>
       <div class="dashboard-card lg:col-span-2">
         <h3 class="text-xl font-bold mb-4">Transaction History</h3>
@@ -46,5 +51,20 @@
 </template>
 
 <script setup>
-// No script logic needed for this static component yet
+
+defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  },
+  userBalance: {
+    type: Number,
+    default: 0
+  }
+});
+
+const emit = defineEmits(['top-up']);
+  emit('close');
+
+
 </script>

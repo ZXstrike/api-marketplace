@@ -3,30 +3,22 @@
     <main class="container mx-auto px-6 py-8 md:py-12">
       <div class="lg:flex lg:space-x-8 h-screen">
 
-        <DashboardSidebar 
-          :active-section="activeSection" 
-          @navigate="handleNavigation"
-        />
+        <DashboardSidebar :active-section="activeSection" @navigate="handleNavigation" />
 
         <main class="flex-1 container mx-auto px-6">
-          <DashboardOverview 
-            v-if="activeSection === 'overview'" 
-            :subscriptions="subscriptions" 
-          />
-          <SubscriptionManager 
-            v-if="activeSection === 'subscriptions'" 
-            :subscriptions="subscriptions"
-            :loading="loadingSubscriptions"
-            @unsubscribe="handleUnsubscribe" 
-            @regenerate-key="handleRegenerateKey"
-            @copy-key="handleCopyKey"
-          />
-          <BillingUsage v-if="activeSection === 'billing'" />
+          <DashboardOverview v-if="activeSection === 'overview'" :subscriptions="subscriptions"
+            :user-balance="userBalance" :monthlyCost="monthlyCost" :requests-this-month="requestsThisMonth" />
+          <SubscriptionManager v-if="activeSection === 'subscriptions'" :subscriptions="subscriptions"
+            :loading="loadingSubscriptions" @unsubscribe="handleUnsubscribe" @regenerate-key="handleRegenerateKey"
+            @copy-key="handleCopyKey" />
+          <BillingUsage v-if="activeSection === 'billing'" :user-balance="userBalance" @top-up="isModalOpen = true" />
         </main>
 
+          <TopupModal :is-open="isModalOpen" @close="isModalOpen = false" @topup-success="handleSuccess" />
       </div>
     </main>
   </div>
+
 </template>
 
 <script setup>
@@ -38,10 +30,22 @@ import DashboardSidebar from '@/components/dashboard/consumer/Sidebar.vue';
 import DashboardOverview from '@/components/dashboard/consumer/Overview.vue';
 import SubscriptionManager from '@/components/dashboard/consumer/Subscription.vue';
 import BillingUsage from '@/components/dashboard/consumer/Billing.vue';
+import TopupModal from '@/components/dashboard/consumer/TopupModal.vue';
 
 const activeSection = ref('overview');
 const subscriptions = ref([]);
 const loadingSubscriptions = ref(true);
+const userBalance = ref(0);
+const monthlyCost = ref(0);
+const requestsThisMonth = ref(0);
+const isModalOpen = ref(false);
+
+const handleSuccess = () => {
+  isModalOpen.value = false;
+  // Refresh data after successful top-up
+  fetchUsernBillingInfo();
+  fetchSubscriptions();
+};
 
 // --- Logika API ---
 
@@ -50,6 +54,19 @@ const maskKey = (key) => {
     return 'No key generated';
   }
   return key.replace(/(.{13})(.*)(.{6})/, '$1***************************$3');
+};
+
+const fetchUsernBillingInfo = async () => {
+  try {
+    const response = await apiClient.get('/billing/info');
+    const data = await response.json();
+    // Proses data billing jika diperlukan
+    console.log('User Billing Info:', data);
+    userBalance.value = data.billing_info.balance || 0;
+    console.log('User Balance:', userBalance.value);
+  } catch (error) {
+    console.error('Failed to fetch user billing info:', error);
+  }
 };
 
 const fetchSubscriptions = async () => {
@@ -87,39 +104,39 @@ const fetchSubscriptions = async () => {
 };
 
 const handleUnsubscribe = async (subscriptionId) => {
-    if(confirm('Are you sure you want to unsubscribe from this API?')) {
-        try {
-            await apiClient.post('/subscriptions/unsubscribe', { subscription_id: subscriptionId });
-            alert('Successfully unsubscribed.');
-            // Ambil ulang daftar langganan untuk memperbarui UI
-            await fetchSubscriptions();
-        } catch (error) {
-            console.error('Failed to unsubscribe:', error);
-            alert('Unsubscription failed.');
-        }
+  if (confirm('Are you sure you want to unsubscribe from this API?')) {
+    try {
+      await apiClient.post('/subscriptions/unsubscribe', { subscription_id: subscriptionId });
+      alert('Successfully unsubscribed.');
+      // Ambil ulang daftar langganan untuk memperbarui UI
+      await fetchSubscriptions();
+    } catch (error) {
+      console.error('Failed to unsubscribe:', error);
+      alert('Unsubscription failed.');
     }
+  }
 };
 
 const handleRegenerateKey = async (subscriptionId) => {
-    if(confirm('Are you sure you want to regenerate the API key?')) {
-        try {
-            const response = await apiClient.post('/api-keys/create', { subscription_id: subscriptionId });
-            alert('API key regenerated successfully.');
-            await fetchSubscriptions();
-        } catch (error) {
-            console.error('Failed to regenerate API key:', error);
-            alert('Failed to regenerate API key.');
-        }
+  if (confirm('Are you sure you want to regenerate the API key?')) {
+    try {
+      const response = await apiClient.post('/api-keys/create', { subscription_id: subscriptionId });
+      alert('API key regenerated successfully.');
+      await fetchSubscriptions();
+    } catch (error) {
+      console.error('Failed to regenerate API key:', error);
+      alert('Failed to regenerate API key.');
     }
+  }
 };
 
 const handleCopyKey = (key) => {
-    navigator.clipboard.writeText(key).then(() => {
-        alert('API key copied to clipboard.');
-    }).catch(err => {
-        console.error('Failed to copy API key:', err);
-        alert('Failed to copy API key.');
-    });
+  navigator.clipboard.writeText(key).then(() => {
+    alert('API key copied to clipboard.');
+  }).catch(err => {
+    console.error('Failed to copy API key:', err);
+    alert('Failed to copy API key.');
+  });
 };
 
 // --- Logika Navigasi ---
@@ -129,13 +146,14 @@ const handleNavigation = (section) => {
 
 // --- Lifecycle & Watchers ---
 onMounted(() => {
-    fetchSubscriptions();
+  fetchSubscriptions();
+  fetchUsernBillingInfo();
 });
 
 // Panggil ulang jika tab diubah (opsional, untuk memastikan data selalu baru)
 watch(activeSection, (newSection) => {
-    if (newSection === 'subscriptions') {
-        fetchSubscriptions();
-    }
+  if (newSection === 'subscriptions') {
+    fetchSubscriptions();
+  }
 });
 </script>

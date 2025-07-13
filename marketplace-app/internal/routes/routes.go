@@ -6,6 +6,7 @@ import (
 	apiRoutes "github.com/ZXstrike/marketplace-app/internal/domain/api/routes"
 	apiKeyRoutes "github.com/ZXstrike/marketplace-app/internal/domain/api_key/routes"
 	authRoutes "github.com/ZXstrike/marketplace-app/internal/domain/auth/routes"
+	billingRoutes "github.com/ZXstrike/marketplace-app/internal/domain/billing/routes"
 	storeRoutes "github.com/ZXstrike/marketplace-app/internal/domain/store/routes"
 	subscriptionRoutes "github.com/ZXstrike/marketplace-app/internal/domain/subscription/routes"
 	userRoutes "github.com/ZXstrike/marketplace-app/internal/domain/user/routes"
@@ -35,4 +36,7 @@ func InitRoutes(router *gin.Engine, db *gorm.DB, privateKey *ecdsa.PrivateKey, p
 
 	// Api Key routes
 	apiKeyRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
+
+	// Billing routes
+	billingRoutes.RegisterRoutes(&router.RouterGroup, db, privateKey, publicKey)
 }

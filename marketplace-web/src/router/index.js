@@ -38,6 +38,11 @@ const routes = [
     component: () => import("@/views/BrowseApisView.vue"),
   },
   {
+    path: "/docs",
+    name: "docs",
+    component: () => import("@/views/DocsView.vue"),
+  },
+  {
     path: "/api-details/:id", // Example with a dynamic parameter
     name: "api-details",
     component: () => import("@/views/ApiDetailsView.vue"),
