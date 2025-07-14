@@ -117,7 +117,7 @@
                   class="w-6 h-6 text-green-500"></i><span>Usage monitoring dashboard</span></li>
             </ul>
             <div class="h-5"></div>
-            <router-link to="/auth"
+            <router-link to="/login"
               class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg text-lg">Create
               Free Account</router-link>
           </div>

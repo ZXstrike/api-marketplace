@@ -10,7 +10,10 @@
                     <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Revenue</h3><i
                         data-feather="dollar-sign" class="text-green-500"></i>
                 </div>
-                <p class="text-3xl font-bold mt-2">$1,230.75</p>
+                <p class="text-3xl font-bold mt-2">{{ new Intl.NumberFormat('id-ID', {
+                    style: 'currency', currency:
+                        'IDR', minimumFractionDigits: 0
+                }).format(userBalance || 0) }}</p>
             </div>
             <div class="dashboard-card">
                 <div class="flex items-center justify-between">
@@ -50,11 +53,15 @@ import Chart from 'chart.js/auto';
 const authStore = useAuthStore();
 
 const props = defineProps({
+    userBalance: {
+        type: Number,
+        default: 0
+    },
     apis: {
         type: Array,
         required: true
     },
-    totalSubs:{
+    totalSubs: {
         type: Number,
         default: 0
     },

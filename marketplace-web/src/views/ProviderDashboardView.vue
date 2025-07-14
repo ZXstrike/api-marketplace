@@ -13,6 +13,7 @@
             v-if="activeSection === 'overview'" 
             :apis="myApis"
             :totalSubs="totalSubscribers" 
+            :user-balance="userBalance"
           />
           <MyApis 
             v-if="activeSection === 'apis'" 
@@ -41,6 +42,7 @@ const router = useRouter();
 
 const activeSection = ref('overview');
 const myApis = ref([]);
+const userBalance = ref(0);
 
 const totalSubscribers = computed(() => {
   return myApis.value.reduce((total, api) => total + api.subscribers, 0);
@@ -59,11 +61,28 @@ onMounted(async () => {
       status: 'Published', // Placeholder as API doesn't provide this
       monthlyRevenue: 0,   // Placeholder as API doesn't provide this
     }));
+
+    fetchUsernBillingInfo();
   } catch (error) {
     console.error("Failed to fetch APIs:", error);
     // Optionally, set an error state to show a message to the user
   }
 });
+
+
+const fetchUsernBillingInfo = async () => {
+  try {
+    const response = await apiClient.get('/billing/info');
+    const data = await response.json();
+    // Proses data billing jika diperlukan
+    console.log('User Billing Info:', data);
+    userBalance.value = data.billing_info.balance || 0;
+    console.log('User Balance:', userBalance.value);
+  } catch (error) {
+    console.error('Failed to fetch user billing info:', error);
+  }
+};
+
 
 // Function to handle the 'navigate' event from the sidebar
 const handleNavigation = (section) => {

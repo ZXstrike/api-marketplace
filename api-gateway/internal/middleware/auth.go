@@ -80,6 +80,7 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*models.APIKey, error) {
 		Preload("Subscription.Consumer").
 		Preload("Subscription.APIVersion").
 		Preload("Subscription.APIVersion.API").
+		Preload("Subscription.APIVersion.API.Provider").
 		First(&apiKey).Error
 
 	if err != nil {

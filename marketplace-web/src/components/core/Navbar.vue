@@ -11,15 +11,15 @@
           <router-link to="/browse" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">APIs</router-link>
           <a href="/#pricing" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Pricing</a>
           <a href="/#features" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Features</a>
+          <router-link to="/docs" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Docs</router-link>
       </div>
 
        <!-- Menus for Authenticated Users -->
       <div v-if="authStore.isLoggedIn" class=" lg:flex items-center gap-6">
-            <router-link v-if="authStore.user.role !== 'provider'" to="/browse" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">APIs</router-link>
+          <router-link v-if="authStore.user.role !== 'provider'" to="/browse" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">APIs</router-link>
           <router-link to="/dashboard" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Dashboard</router-link>
           <router-link to="/docs" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Docs</router-link>
       </div>
-
 
       <!-- Auth Buttons for Unauthenticated Users -->
       <div v-if="!authStore.isLoggedIn" class=" flex items-center gap-4">

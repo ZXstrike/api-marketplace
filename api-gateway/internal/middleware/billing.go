@@ -15,7 +15,7 @@ func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 		// You can implement your billing logic here, such as checking if the user's subscription is active,
 		// if they have sufficient balance, etc.
 
-		c.Next() // Proceed to the next middleware or handler 
+		c.Next() // Proceed to the next middleware or handler
 
 		if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
 			apiKey, exists := c.Get("api_key")
@@ -33,6 +33,14 @@ func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 			user.AccountBalance -= apiKey.(*models.APIKey).Subscription.APIVersion.PricePerCall
 			if err := db.Save(user).Error; err != nil {
 				c.JSON(500, gin.H{"error": "Failed to update account balance"})
+				return
+			}
+
+			provider := apiKey.(*models.APIKey).Subscription.APIVersion.API.Provider
+
+			provider.AccountBalance += apiKey.(*models.APIKey).Subscription.APIVersion.PricePerCall
+			if err := db.Save(provider).Error; err != nil {
+				c.JSON(500, gin.H{"error": "Failed to update provider account balance"})
 				return
 			}
 
