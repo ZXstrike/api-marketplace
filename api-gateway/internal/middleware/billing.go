@@ -1,50 +1,72 @@
 package middleware
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/ZXstrike/shared/pkg/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
-		// This middleware can be used to check billing status, subscription validity, etc.
-		// For now, it just passes the request through.
-
-		// You can implement your billing logic here, such as checking if the user's subscription is active,
-		// if they have sufficient balance, etc.
-
-		c.Next() // Proceed to the next middleware or handler
-
-		if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
-			apiKey, exists := c.Get("api_key")
-			if !exists {
-				c.JSON(500, gin.H{"error": "API key not found in context"})
-				return
-			}
-
-			user := apiKey.(*models.APIKey).Subscription.Consumer
-			if user.AccountBalance < apiKey.(*models.APIKey).Subscription.APIVersion.PricePerCall {
-				c.JSON(402, gin.H{"error": "Insufficient account balance"})
-				return
-			}
-
-			user.AccountBalance -= apiKey.(*models.APIKey).Subscription.APIVersion.PricePerCall
-			if err := db.Save(user).Error; err != nil {
-				c.JSON(500, gin.H{"error": "Failed to update account balance"})
-				return
-			}
-
-			provider := apiKey.(*models.APIKey).Subscription.APIVersion.API.Provider
-
-			provider.AccountBalance += apiKey.(*models.APIKey).Subscription.APIVersion.PricePerCall
-			if err := db.Save(provider).Error; err != nil {
-				c.JSON(500, gin.H{"error": "Failed to update provider account balance"})
-				return
-			}
-
+		apiKeyVal, exists := c.Get("api_key")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "API key not found in context for billing"})
+			return
 		}
-	}
 
+		apiKey := apiKeyVal.(*models.APIKey)
+		price := apiKey.Subscription.APIVersion.PricePerCall
+		consumerID := apiKey.Subscription.Consumer.ID
+		providerID := apiKey.Subscription.APIVersion.API.Provider.ID
+
+		// Phase 1: Reserve funds from the consumer BEFORE the handler runs.
+		// This is a very short, single-statement operation.
+		debitTx := db.Model(&models.User{}).
+			Where("id = ? AND account_balance >= ?", consumerID, price).
+			Update("account_balance", gorm.Expr("account_balance - ?", price))
+
+		if debitTx.Error != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Database error during funds reservation"})
+			return
+		}
+
+		if debitTx.RowsAffected == 0 {
+			c.AbortWithStatusJSON(http.StatusPaymentRequired, gin.H{"error": "Insufficient account balance"})
+			return
+		}
+
+		// Defer Phase 2 to run AFTER the handler.
+		defer func() {
+			if r := recover(); r != nil {
+				refundConsumer(db, consumerID, price)
+				panic(r)
+			}
+
+			if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
+				creditProvider(db, providerID, price)
+			} else {
+				refundConsumer(db, consumerID, price)
+			}
+		}()
+
+		// Proceed to the actual request handler without holding a transaction.
+		c.Next()
+	}
+}
+
+// creditProvider credits the provider's account.
+func creditProvider(db *gorm.DB, providerID string, price float64) {
+	if err := db.Model(&models.User{}).Where("id = ?", providerID).Update("account_balance", gorm.Expr("account_balance + ?", price)).Error; err != nil {
+		log.Printf("CRITICAL: FAILED TO CREDIT PROVIDER %s. Error: %v", providerID, err)
+	}
+}
+
+// refundConsumer refunds the consumer if the request fails after debit.
+func refundConsumer(db *gorm.DB, consumerID string, price float64) {
+	if err := db.Model(&models.User{}).Where("id = ?", consumerID).Update("account_balance", gorm.Expr("account_balance + ?", price)).Error; err != nil {
+		log.Printf("CRITICAL: FAILED TO REFUND CONSUMER %s. Error: %v", consumerID, err)
+	}
 }

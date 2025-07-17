@@ -43,24 +43,31 @@ func LoggingMiddleware(logger *log.Logger, db *gorm.DB) gin.HandlerFunc {
 
 		logger.Println(logEntry)
 
+		// Only log usage for successful requests.
 		if statusCode >= 200 && statusCode < 300 {
-			apiKey, exists := c.Get("api_key")
+			// Use the lightweight CachedKeyInfo object from the context.
+			infoVal, exists := c.Get("api_key_info")
 			if !exists {
-				logger.Println("No API key found in context")
+				logger.Println("No api_key_info found in context for usage logging")
 				return
 			}
 
-			logEntry := models.UsageLog{
-				SubscriptionID:   apiKey.(*models.APIKey).Subscription.ID,
-				APIKeyID:         apiKey.(*models.APIKey).ID,
-				RequestTimestamp: start,
-			}
+			info := infoVal.(*CachedKeyInfo)
 
-			if err := db.Create(&logEntry).Error; err != nil {
-				logger.Printf("Error logging usage: %v", err)
-			}
+			// Perform the database write in a separate goroutine.
+			go func() {
+				usageLog := models.UsageLog{
+					// The required IDs are now directly on the cached info struct.
+					SubscriptionID:   info.APIID, // Assuming APIID in CachedKeyInfo corresponds to SubscriptionID's purpose
+					APIKeyID:         info.APIKeyID,
+					RequestTimestamp: start,
+				}
 
-		} else {
+				if err := db.Create(&usageLog).Error; err != nil {
+					// Use the same logger to report the background task failure.
+					logger.Printf("Error logging usage to DB: %v", err)
+				}
+			}()
 		}
 	}
 }

@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/ZXstrike/api-gateway/internal/config"
 	"github.com/ZXstrike/shared/pkg/models"
@@ -26,6 +27,22 @@ func PostgresConnect(postgresConf *config.PostgresConfig) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// --- Add Connection Pool Settings Here ---
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get underlying sql.DB: %w", err)
+	}
+
+	// Set the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(25)
+
+	// Set the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(10)
+
+	// Set the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	// --- End of Connection Pool Settings ---
 
 	migration(db)
 
