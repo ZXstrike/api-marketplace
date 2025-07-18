@@ -33,9 +33,19 @@ func (r *repository) UpdateBalanceByUserID(userID string, amount float64) error 
 	if err := r.db.First(&user, "id = ?", userID).Error; err != nil {
 		return err
 	}
+	
+	// Ensure the balance does not go negative
+	if user.AccountBalance < 0 {
+		return gorm.ErrRecordNotFound // or a custom error indicating insufficient balance
+	}
 
+	// Update the user's balance in the database
 	user.AccountBalance += amount
+	if user.AccountBalance < 0 {
+		return gorm.ErrRecordNotFound // or a custom error indicating insufficient balance
+	}
 
+	// Save the updated user back to the database
 	if err := r.db.Save(&user).Error; err != nil {
 		return err
 	}

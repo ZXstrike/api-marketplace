@@ -46,9 +46,9 @@ func LoggingMiddleware(logger *log.Logger, db *gorm.DB) gin.HandlerFunc {
 		// Only log usage for successful requests.
 		if statusCode >= 200 && statusCode < 300 {
 			// Use the lightweight CachedKeyInfo object from the context.
-			infoVal, exists := c.Get("api_key_info")
+			infoVal, exists := c.Get("api_key")
 			if !exists {
-				logger.Println("No api_key_info found in context for usage logging")
+				logger.Println("No api_key found in context for usage logging")
 				return
 			}
 
