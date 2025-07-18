@@ -67,7 +67,7 @@ func AuthMiddleware(db *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
 		}
 
 		// Use the lightweight cached object instead of the heavy GORM model
-		c.Set("api_key_info", cachedInfo) // Pass the whole info struct
+		c.Set("api_key", cachedInfo) // Pass the whole info struct
 		c.Set("user_id", cachedInfo.ConsumerID)
 		c.Set("api_id", cachedInfo.APIID)
 
@@ -124,7 +124,7 @@ func cacheAPIKey(ctx context.Context, redisClient *redis.Client, keyString strin
 	redisClient.Set(ctx, cacheKey, serializedData, apiKeyCacheDuration)
 }
 
-// ValidateAPIKey finds a key and its related data in a single query.
+// ValidateAPIKey finds a key and its related data using Preload.
 // It returns a lightweight CachedKeyInfo object if found, otherwise an error.
 func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 	if keyString == "" {
@@ -133,23 +133,11 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 
 	incomingKeyHash := sha256.Sum256([]byte(keyString))
 
-	var result CachedKeyInfo
-	err := db.Model(&models.APIKey{}).
-		Select(
-			"api_keys.id as api_key_id",
-			"consumers.id as consumer_id",
-			"providers.id as provider_id",
-			"apis.id as api_id",
-			"api_versions.price_per_call",
-			"consumers.account_balance as balance",
-		).
-		Joins("JOIN subscriptions ON subscriptions.id = api_keys.subscription_id").
-		Joins("JOIN users as consumers ON consumers.id = subscriptions.consumer_user_id").
-		Joins("JOIN api_versions ON api_versions.id = subscriptions.api_version_id").
-		Joins("JOIN apis ON apis.id = api_versions.api_id").
-		Joins("JOIN users as providers ON providers.id = apis.provider_id").
-		Where("api_keys.key_value_hash = ?", incomingKeyHash[:]).
-		First(&result).Error
+	var apiKey models.APIKey
+	err := db.Preload("Subscription.Consumer").
+		Preload("Subscription.APIVersion.API.Provider").
+		Where("key_value_hash = ?", incomingKeyHash[:]).
+		First(&apiKey).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -158,5 +146,15 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 		return nil, fmt.Errorf("database error validating key: %w", err)
 	}
 
-	return &result, nil
+	// Manually map the preloaded data to the lightweight struct.
+	result := &CachedKeyInfo{
+		APIKeyID:     apiKey.ID,
+		ConsumerID:   apiKey.Subscription.Consumer.ID,
+		ProviderID:   apiKey.Subscription.APIVersion.API.Provider.ID,
+		APIID:        apiKey.Subscription.APIVersion.API.ID,
+		PricePerCall: apiKey.Subscription.APIVersion.PricePerCall,
+		Balance:      apiKey.Subscription.Consumer.AccountBalance,
+	}
+
+	return result, nil
 }

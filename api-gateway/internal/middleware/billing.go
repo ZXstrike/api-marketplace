@@ -11,16 +11,18 @@ import (
 
 func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		apiKeyVal, exists := c.Get("api_key")
+		// Correctly get "api_key_info" from the context set by AuthMiddleware.
+		infoVal, exists := c.Get("api_key")
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "API key not found in context for billing"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "API key info not found in context for billing"})
 			return
 		}
 
-		apiKey := apiKeyVal.(*models.APIKey)
-		price := apiKey.Subscription.APIVersion.PricePerCall
-		consumerID := apiKey.Subscription.Consumer.ID
-		providerID := apiKey.Subscription.APIVersion.API.Provider.ID
+		// Cast to the correct lightweight struct type.
+		info := infoVal.(*CachedKeyInfo)
+		price := info.PricePerCall
+		consumerID := info.ConsumerID
+		providerID := info.ProviderID
 
 		// Phase 1: Reserve funds from the consumer BEFORE the handler runs.
 		// This is a very short, single-statement operation.
