@@ -144,7 +144,7 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 			"consumers.account_balance as balance",
 		).
 		Joins("JOIN subscriptions ON subscriptions.id = api_keys.subscription_id").
-		Joins("JOIN users as consumers ON consumers.id = subscriptions.consumer_id").
+		Joins("JOIN users as consumers ON consumers.id = subscriptions.consumer_user_id").
 		Joins("JOIN api_versions ON api_versions.id = subscriptions.api_version_id").
 		Joins("JOIN apis ON apis.id = api_versions.api_id").
 		Joins("JOIN users as providers ON providers.id = apis.provider_id").
