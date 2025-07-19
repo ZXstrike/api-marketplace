@@ -17,12 +17,13 @@ import (
 
 // CachedKeyInfo is a lightweight struct for caching essential API key data.
 type CachedKeyInfo struct {
-	APIKeyID     string  `json:"api_key_id"`
-	ConsumerID   string  `json:"consumer_id"`
-	ProviderID   string  `json:"provider_id"`
-	APIID        string  `json:"api_id"`
-	PricePerCall float64 `json:"price_per_call"`
-	Balance      float64 `json:"balance"`
+	APIKeyID       string  `json:"api_key_id"`
+	SubscriptionID string  `json:"subscription_id"`
+	ConsumerID     string  `json:"consumer_id"`
+	ProviderID     string  `json:"provider_id"`
+	APIID          string  `json:"api_id"`
+	PricePerCall   float64 `json:"price_per_call"`
+	Balance        float64 `json:"balance"`
 }
 
 const (
@@ -148,12 +149,13 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 
 	// Manually map the preloaded data to the lightweight struct.
 	result := &CachedKeyInfo{
-		APIKeyID:     apiKey.ID,
-		ConsumerID:   apiKey.Subscription.Consumer.ID,
-		ProviderID:   apiKey.Subscription.APIVersion.API.Provider.ID,
-		APIID:        apiKey.Subscription.APIVersion.API.ID,
-		PricePerCall: apiKey.Subscription.APIVersion.PricePerCall,
-		Balance:      apiKey.Subscription.Consumer.AccountBalance,
+		APIKeyID:       apiKey.ID,
+		SubscriptionID: apiKey.Subscription.ID,
+		ConsumerID:     apiKey.Subscription.Consumer.ID,
+		ProviderID:     apiKey.Subscription.APIVersion.API.Provider.ID,
+		APIID:          apiKey.Subscription.APIVersion.API.ID,
+		PricePerCall:   apiKey.Subscription.APIVersion.PricePerCall,
+		Balance:        apiKey.Subscription.Consumer.AccountBalance,
 	}
 
 	return result, nil

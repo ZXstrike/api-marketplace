@@ -1,16 +1,24 @@
 package proxy
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/ZXstrike/shared/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+)
+
+const (
+	routeCacheDuration = 5 * time.Minute
+	routeCachePrefix   = "route:"
 )
 
 type CacheRouteInfo struct {
@@ -23,14 +31,21 @@ func ProxyHandler(db *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
 	// You would typically forward the request to another service here.
 
 	return func(c *gin.Context) {
-		// Example: Forward the request to another service
-		// You can use a library like "net/http" or "github.com/gin-gonic/gin" to forward the request.
+		// Create a consistent cache key from the request host and path slug
+		host := c.Request.Host
+		pathParts := strings.Split(strings.TrimPrefix(c.Request.URL.Path, "/"), "/")
+		if len(pathParts) < 1 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Invalid API path"})
+			return
+		}
+		apiSlug := pathParts[0]
+		cacheKey := fmt.Sprintf("%s%s/%s", routeCachePrefix, host, apiSlug)
 
-		targetUrl := ResolveTargetUrlFromCache(c, redisClient)
+		targetUrl := ResolveTargetUrlFromCache(c.Request.Context(), redisClient, cacheKey)
 		if targetUrl == nil {
-			targetUrl = ResolveTargetUrlFromDBandCacheIt(c, db, redisClient)
+			targetUrl = ResolveTargetUrlFromDBandCacheIt(c, db, redisClient, cacheKey)
 			if targetUrl == nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "No target URL found for this request"})
+				c.JSON(http.StatusNotFound, gin.H{"error": "API route not found or you do not have permission"})
 				return
 			}
 		}
@@ -57,13 +72,8 @@ func ProxyHandler(db *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
 
 	}
 }
-func ResolveTargetUrlFromCache(c *gin.Context, redisClient *redis.Client) *url.URL {
-	tokenHeader := c.GetHeader("Token")
-	if tokenHeader == "" {
-		return nil
-	}
-
-	val, err := redisClient.Get(c.Request.Context(), tokenHeader).Result()
+func ResolveTargetUrlFromCache(ctx context.Context, redisClient *redis.Client, cacheKey string) *url.URL {
+	val, err := redisClient.Get(ctx, cacheKey).Result()
 	if err != nil {
 		return nil
 	}
@@ -82,7 +92,7 @@ func ResolveTargetUrlFromCache(c *gin.Context, redisClient *redis.Client) *url.U
 	return targetUrl
 }
 
-func ResolveTargetUrlFromDBandCacheIt(c *gin.Context, db *gorm.DB, redisClient *redis.Client) *url.URL {
+func ResolveTargetUrlFromDBandCacheIt(c *gin.Context, db *gorm.DB, redisClient *redis.Client, cacheKey string) *url.URL {
 	// Get the host from the request header, not from URL
 	host := c.Request.Host
 	if host == "" {
@@ -121,13 +131,13 @@ func ResolveTargetUrlFromDBandCacheIt(c *gin.Context, db *gorm.DB, redisClient *
 		return nil
 	}
 
-	// Chek if the api mathc with the one resolved from the auth middleware
+	// Check if the api matches with the one resolved from the auth middleware
 	if api.ID != c.GetString("api_id") {
 		// API ID does not match, return nil
 		return nil
 	}
 
-	targetUrlString := api.BaseURL + targetPath
+	targetUrlString := api.BaseURL + "/" + targetPath
 
 	targetUrl, err := url.Parse(targetUrlString)
 	if err != nil {
@@ -135,6 +145,16 @@ func ResolveTargetUrlFromDBandCacheIt(c *gin.Context, db *gorm.DB, redisClient *
 		return nil
 	}
 
-	// For now, returning a placeholder
+	// --- FIX: Cache the result before returning ---
+	cacheInfo := CacheRouteInfo{
+		TargetUrl: targetUrl.String(),
+		ApiID:     api.ID,
+	}
+	serializedData, err := json.Marshal(cacheInfo)
+	if err == nil {
+		redisClient.Set(c.Request.Context(), cacheKey, serializedData, routeCacheDuration)
+	}
+	// --- End of fix ---
+
 	return targetUrl
 }

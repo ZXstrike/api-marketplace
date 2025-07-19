@@ -2,20 +2,19 @@ package middleware
 
 import (
 	"log"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 )
 
-const (
-	rateLimitPrefix        = "api_rl_config:"
-	rateLimitCacheDuration = 5 * time.Minute
-	notFoundCacheDuration  = 5 * time.Minute
-	notFoundPlaceholder    = "NOT_FOUND"
-	userStatusCachePrefix  = "user_status:"
-	statusSuspended        = "SUSPENDED"
-)
+// const (
+// 	rateLimitPrefix        = "api_rl_config:"
+// 	rateLimitCacheDuration = 5 * time.Minute
+// 	notFoundCacheDuration  = 5 * time.Minute
+// 	notFoundPlaceholder    = "NOT_FOUND"
+// 	userStatusCachePrefix  = "user_status:"
+// 	statusSuspended        = "SUSPENDED"
+// )
 
 func RateLimitMiddleware(logger *log.Logger, redisClient *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {

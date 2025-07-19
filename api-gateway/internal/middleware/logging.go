@@ -58,7 +58,7 @@ func LoggingMiddleware(logger *log.Logger, db *gorm.DB) gin.HandlerFunc {
 			go func() {
 				usageLog := models.UsageLog{
 					// The required IDs are now directly on the cached info struct.
-					SubscriptionID:   info.APIID, // Assuming APIID in CachedKeyInfo corresponds to SubscriptionID's purpose
+					SubscriptionID:   info.SubscriptionID,
 					APIKeyID:         info.APIKeyID,
 					RequestTimestamp: start,
 				}
