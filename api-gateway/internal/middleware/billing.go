@@ -24,11 +24,10 @@ func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 		consumerID := info.ConsumerID
 		providerID := info.ProviderID
 
-		// Phase 1: Reserve funds from the consumer BEFORE the handler runs.
-		// This is a very short, single-statement operation.
-		debitTx := db.Model(&models.User{}).
-			Where("id = ? AND account_balance >= ?", consumerID, price).
-			Update("account_balance", gorm.Expr("account_balance - ?", price))
+		// Phase 1: Reserve funds from the consumer's wallet BEFORE the handler runs.
+		debitTx := db.Model(&models.Wallet{}).
+			Where("user_id = ? AND wallet_type = ? AND balance >= ?", consumerID, "consumer", price).
+			Update("balance", gorm.Expr("balance - ?", price))
 
 		if debitTx.Error != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Database error during funds reservation"})
@@ -61,14 +60,16 @@ func BillingMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 // creditProvider credits the provider's account.
 func creditProvider(db *gorm.DB, providerID string, price float64) {
-	if err := db.Model(&models.User{}).Where("id = ?", providerID).Update("account_balance", gorm.Expr("account_balance + ?", price)).Error; err != nil {
+	// Credit the provider's  wallet
+	if err := db.Model(&models.Wallet{}).Where("user_id = ? AND wallet_type = ?", providerID).Update("balance", gorm.Expr("balance + ?", price)).Error; err != nil {
 		log.Printf("CRITICAL: FAILED TO CREDIT PROVIDER %s. Error: %v", providerID, err)
 	}
 }
 
 // refundConsumer refunds the consumer if the request fails after debit.
 func refundConsumer(db *gorm.DB, consumerID string, price float64) {
-	if err := db.Model(&models.User{}).Where("id = ?", consumerID).Update("account_balance", gorm.Expr("account_balance + ?", price)).Error; err != nil {
+	// Refund the consumer's "consumer" wallet
+	if err := db.Model(&models.Wallet{}).Where("user_id = ? AND wallet_type = ?", consumerID, "consumer").Update("balance", gorm.Expr("balance + ?", price)).Error; err != nil {
 		log.Printf("CRITICAL: FAILED TO REFUND CONSUMER %s. Error: %v", consumerID, err)
 	}
 }

@@ -30,11 +30,12 @@
               <input type="url" id="base-url" v-model="apiData.base_url" class="form-input" required>
             </div>
             <div>
-              <label for="price-per-call" class="form-label">Price per Call (in USD)</label>
-              <input type="number" id="price-per-call" v-model.number="apiData.price_per_call" step="0.0001" min="0" class="form-input" required>
+              <label for="price-per-call" class="form-label">Price per Call (in IDR)</label>
+              <input type="number" id="price-per-call" v-model="apiData.price_per_call" class="form-input" min="0"
+                step="50" required>
             </div>
             <div>
-              <label class="form-label">Categories</label>
+              <label for="categories" class="form-label">Categories</label>
               <div v-if="availableCategories.length > 0" class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 border p-4 rounded-md">
                 <label v-for="category in availableCategories" :key="category.id" class="flex items-center cursor-pointer">
                   <input type="checkbox" :value="category.slug" v-model="apiData.categories" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">

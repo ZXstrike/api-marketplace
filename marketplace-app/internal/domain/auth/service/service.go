@@ -10,11 +10,12 @@ import (
 	"github.com/ZXstrike/shared/pkg/models"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Service interface {
 	Register(ctx context.Context, email, password, username string) error
-	Login(ctx context.Context, email, password string) (string, error)
+	Login(ctx context.Context, email, password string) (string, string, *models.User, error)
 	VerifyToken(tokenStr string) (*jwt.RegisteredClaims, error)
 	RefreshToken(tokenStr string) (string, error)
 }
@@ -42,28 +43,35 @@ func (s *service) Register(ctx context.Context, email, password, username string
 		PasswordHash:      string(hash),
 		Description:       "",
 		ProfilePictureURL: "",
-		AccountBalance:    0,
 	}
 
 	var consumerRole *models.Role
 
 	if consumerRole, err = s.repo.GetRoleByName(ctx, "consumer"); err != nil {
-		s.repo.CreateRole(ctx, &models.Role{Name: "consumer"})
-		if consumerRole, err = s.repo.GetRoleByName(ctx, "consumer"); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			s.repo.CreateRole(ctx, &models.Role{Name: "consumer", Description: "API Consumer"})
+			if consumerRole, err = s.repo.GetRoleByName(ctx, "consumer"); err != nil {
+				return err
+			}
+		} else {
 			return err
 		}
-
 	}
 
 	user.Roles = []models.Role{*consumerRole}
 
+	// Create a default consumer wallet for the new user
+	user.Wallets = []models.Wallet{
+		{WalletType: "consumer", Balance: 0},
+	}
+
 	return s.repo.Create(ctx, user)
 }
 
-func (s *service) Login(ctx context.Context, email, password string) (string, error) {
+func (s *service) Login(ctx context.Context, email, password string) (string, string, *models.User, error) {
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil || bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)) != nil {
-		return "", errors.New("invalid credentials")
+		return "", "", nil, errors.New("invalid credentials")
 	}
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.RegisteredClaims{
@@ -73,7 +81,12 @@ func (s *service) Login(ctx context.Context, email, password string) (string, er
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 	})
 
-	return claims.SignedString(s.privateKey)
+	token, err := claims.SignedString(s.privateKey)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	return token, user.ID, user, nil
 }
 
 func (s *service) VerifyToken(tokenStr string) (*jwt.RegisteredClaims, error) {

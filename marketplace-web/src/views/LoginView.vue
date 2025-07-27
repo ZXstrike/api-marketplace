@@ -121,7 +121,9 @@ async function handleLogin() {
       : null;
 
     // Map 'store_owner' role to 'provider', default to 'consumer'
-    const isProvider = userData.roles?.some(role => role.name === 'store_owner');
+    console.log('User roles:', userData.roles);
+
+    const isProvider = userData.roles?.some(role => role.name === 'provider');
     const role = isProvider ? 'provider' : 'consumer';
 
     console.log('Role determined:', role);

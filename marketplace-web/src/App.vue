@@ -2,7 +2,7 @@
   <div id="app-wrapper" class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased min-h-screen">
     <Navbar v-if="!$route.meta.hideNavbar" />
 
-    <main>
+    <main class="">
       <RouterView :key="$route.fullPath" />
     </main>
 
@@ -11,23 +11,31 @@
 </template>
 
 <script setup>
-import { onUpdated } from 'vue';
-import { RouterView, useRoute } from 'vue-router'; // Import useRoute
+import { onMounted, watch, nextTick } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 import Navbar from '@/components/core/Navbar.vue';
 import Footer from '@/components/core/Footer.vue';
 
-// Although $route is available in the template, if you needed to access it
-// in the script section for other logic, you would use this:
-// const route = useRoute();
+// Force dark theme on application start
+onMounted(() => {
+  document.documentElement.classList.add('dark');
+  if (window.feather) {
+    window.feather.replace();
+  }
+});
 
-// This function re-initializes Feather Icons every time the view changes.
-// This is crucial because Vue re-renders parts of the DOM, and the icons need to be redrawn.
-onUpdated(() => {
+const route = useRoute();
+
+// For feather icons on route change
+watch(() => route.path, async () => {
+  await nextTick();
   if (window.feather) {
     window.feather.replace();
     console.log('Feather icons updated');
   }
 });
+
+
 </script>
 
 <style>

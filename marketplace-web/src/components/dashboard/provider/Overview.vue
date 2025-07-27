@@ -8,7 +8,7 @@
             <div class="dashboard-card">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Revenue</h3><i
-                        data-feather="dollar-sign" class="text-green-500"></i>
+                        data-feather="credit-card" class="text-green-500"></i>
                 </div>
                 <p class="text-3xl font-bold mt-2">{{ new Intl.NumberFormat('id-ID', {
                     style: 'currency', currency:

@@ -28,19 +28,19 @@
             </thead>
             <tbody>
               <tr class="border-b border-gray-100 dark:border-gray-700/50">
-                <td class="p-3">Jun 20, 2025</td>
+                <td class="p-3">Jul 20, 2025</td>
                 <td class="p-3">Usage Charge: Geolocation API</td>
-                <td class="p-3 text-right text-red-500">-$2.50</td>
+                <td class="p-3 text-right text-red-500">-{{ formatCurrency(2500) }}</td>
               </tr>
               <tr class="border-b border-gray-100 dark:border-gray-700/50">
-                <td class="p-3">Jun 19, 2025</td>
+                <td class="p-3">Jul 19, 2025</td>
                 <td class="p-3">Usage Charge: Sentiment Analysis</td>
-                <td class="p-3 text-right text-red-500">-$5.00</td>
+                <td class="p-3 text-right text-red-500">-{{ formatCurrency(5000) }}</td>
               </tr>
               <tr>
-                <td class="p-3">Jun 1, 2025</td>
+                <td class="p-3">Jul 1, 2025</td>
                 <td class="p-3 font-semibold">Balance Top-up</td>
-                <td class="p-3 text-right text-green-500">+$50.00</td>
+                <td class="p-3 text-right text-green-500">+{{ formatCurrency(50000) }}</td>
               </tr>
             </tbody>
           </table>
@@ -51,7 +51,6 @@
 </template>
 
 <script setup>
-
 defineProps({
   isOpen: {
     type: Boolean,
@@ -64,7 +63,12 @@ defineProps({
 });
 
 const emit = defineEmits(['top-up']);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+};
+
+const close = () => {
   emit('close');
-
-
+};
 </script>

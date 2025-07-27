@@ -54,6 +54,13 @@ const routes = [
     meta: { requiresAuth: true }, // meta field untuk proteksi route
   },
   {
+    path: "/admin",
+    name: "admin",
+    component: () => import("@/views/AdminDashboardView.vue"),
+    // meta: { requiresAuth: true }, // meta field untuk proteksi route
+    
+  },
+  {
     path: "/dashboard/create-new-api",
     name: "create-api",
     component: () => import("@/views/CreateNewApiView.vue"),
@@ -94,6 +101,14 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   } else {
+    try {
+      // Coba refresh token sebelum melanjutkan
+      await apiClient.refreshToken();
+      next(); // Lanjutkan ke rute yang diminta
+    } catch (error) {
+      console.error("Unexpected error during token refresh:", error);
+      authStore.logout(); // Jika ada error lain, logout pengguna
+    }
     next();
   }
 });

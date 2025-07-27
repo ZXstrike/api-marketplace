@@ -8,7 +8,7 @@
                 <h2 class="text-xl font-semibold text-gray-500 dark:text-gray-400">Price per Call</h2>
                 <template v-if="version">
                     <p v-if="version.price_per_call > 0" class="my-4">
-                        <span class="text-5xl font-extrabold text-blue-600">${{ version.price_per_call }}</span>
+                        <span class="text-5xl font-extrabold text-blue-600">{{ formatCurrency(version.price_per_call) }}</span>
                     </p>
                     <p v-else class="my-4 text-5xl font-extrabold text-green-500">Free</p>
                 </template>
@@ -25,6 +25,10 @@ defineProps({
         default: null
     }
 });
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+};
 </script>
 
 <style scoped></style>

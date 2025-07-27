@@ -58,11 +58,11 @@ const maskKey = (key) => {
 
 const fetchUsernBillingInfo = async () => {
   try {
-    const response = await apiClient.get('/billing/info');
+    const response = await apiClient.get('/billing/info?wallet_type=consumer');
     const data = await response.json();
     // Proses data billing jika diperlukan
     console.log('User Billing Info:', data);
-    userBalance.value = data.billing_info.balance || 0;
+    userBalance.value = data.balance || 0;
     console.log('User Balance:', userBalance.value);
   } catch (error) {
     console.error('Failed to fetch user billing info:', error);

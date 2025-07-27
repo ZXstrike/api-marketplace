@@ -25,41 +25,33 @@
       </section>
 
       <!-- Featured APIs Section -->
-      <section id="apis" class="py-20 bg-gray-50 dark:bg-gray-900/50 justify-items-center">
-        <!-- FIX: Re-instated the standard container pattern -->
-        <div class="container mx-auto px-6 justify-items-center">
-          <h2 class="text-3xl font-bold text-gray-800 dark:text-white sm:text-4xl text-center">Explore Our API Catalog
-          </h2>
-          <p class="pt-4 pb-5 text-lg text-gray-600 dark:text-gray-300 text-center max-w-2xl mx-auto ">From data
-            processing to machine learning, find the perfect API to power your next project.</p>
-          <div class="mt-12 grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ">
-            <!-- API Card examples -->
+      <section id="featured-apis" class="py-20">
+        <div class="container mx-auto px-6">
+          <h2 class="text-3xl font-bold text-center">Explore Popular APIs</h2>
+          <p class="mt-4 text-center text-lg text-gray-400">Power your applications with our robust and easy-to-use APIs.
+          </p>
+          <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <div
-              class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 text-center">
-              <h3 class="text-xl font-bold">Geolocation API</h3>
-              <p class="mt-4 text-gray-600 dark:text-gray-400">Convert IP addresses to physical locations.</p>
+              class="bg-gray-800/50 border border-gray-700 rounded-xl shadow-lg p-6 text-center">
+              <h3 class="text-xl font-bold">Geolocation</h3>
+              <p class="mt-4 text-gray-400">Pinpoint user locations with high accuracy.</p>
             </div>
             <div
-              class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 text-center">
-              <h3 class="text-xl font-bold">Sentiment Analysis</h3>
-              <p class="mt-4 text-gray-600 dark:text-gray-400">Analyze text to determine emotional tone.</p>
-            </div>
-            <div
-              class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 text-center">
+              class="bg-gray-800/50 border border-gray-700 rounded-xl shadow-lg p-6 text-center">
               <h3 class="text-xl font-bold">Currency Exchange</h3>
-              <p class="mt-4 text-gray-600 dark:text-gray-400">Get real-time foreign exchange rates.</p>
+              <p class="mt-4 text-gray-400">Get real-time foreign exchange rates.</p>
             </div>
             <div
-              class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 text-center">
+              class="bg-gray-800/50 border border-gray-700 rounded-xl shadow-lg p-6 text-center">
               <h3 class="text-xl font-bold">Image Resizer</h3>
-              <p class="mt-4 text-gray-600 dark:text-gray-400">Optimize and resize images on-the-fly.</p>
+              <p class="mt-4 text-gray-400">Optimize and resize images on-the-fly.</p>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Features Section -->
-      <section id="features" class="py-20 bg-white dark:bg-gray-900 justify-items-center">
+      <section id="features" class="py-20 bg-gray-900 justify-items-center">
         <!-- FIX: Re-instated the standard container pattern -->
         <div class="container mx-auto px-6">
           <h2 class="text-3xl font-bold text-gray-800 dark:text-white sm:text-4xl text-center">Built for Modern
@@ -129,10 +121,14 @@
 </template>
 
 <script setup>
+import { onMounted, watch, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
-// No specific script logic is needed for this static landing page,
-// but the setup block is here for consistency and future use.
 
+onMounted(() => {
+  if (window.feather) {
+    window.feather.replace();
+  }
+});
 </script>
 
 <style scoped>

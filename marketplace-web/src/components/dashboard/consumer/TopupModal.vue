@@ -78,7 +78,7 @@ const handleTopup = async () => {
   }
   console.log(`Starting top-up of Rp ${formatCurrency(selectedAmount.value)}`);
   try {
-    const response = await apiClient.put('/billing/update-balance', {
+    const response = await apiClient.put('/billing/update-balance?', {
       amount: selectedAmount.value
     });
     if (response.status !== 200) {

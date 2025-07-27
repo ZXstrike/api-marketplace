@@ -26,6 +26,8 @@ export const useAuthStore = defineStore('auth', () => {
             userData.avatarUrl = `https://placehold.co/100x100/E2E8F0/4A5568?text=${initial}`;
         }
 
+        
+
         console.log('Login successful:', userData, apiToken);
 
         // Update reactive state.

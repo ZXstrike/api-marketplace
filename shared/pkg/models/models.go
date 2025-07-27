@@ -22,7 +22,7 @@ type User struct {
 	PasswordHash      string               `json:"-" gorm:"column:password_hash;not null"`
 	Description       string               `json:"description" gorm:"type:text"`
 	ProfilePictureURL string               `json:"profile_picture_url" gorm:"type:varchar(255)"`
-	AccountBalance    float64              `json:"-" gorm:"type:decimal(12,2);not null;default:0"`
+	Wallets           []Wallet             `json:"wallets,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	Roles             []Role               `json:"roles,omitempty" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
 	APIs              []API                `json:"apis,omitempty" gorm:"foreignKey:ProviderID;constraint:OnDelete:CASCADE"`
 	Subscriptions     []Subscription       `json:"subscriptions,omitempty" gorm:"foreignKey:ConsumerUserID;constraint:OnDelete:CASCADE"`
@@ -37,6 +37,16 @@ type Role struct {
 	Name        string `json:"name" gorm:"uniqueIndex;not null"`
 	Description string `json:"description" gorm:"type:text"`
 	Users       []User `json:"users,omitempty" gorm:"many2many:user_roles;constraint:OnDelete:CASCADE"`
+}
+
+// Wallet represents a user's balance for a specific role (e.g., consumer or provider)
+type Wallet struct {
+	Base
+	ID         string  `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	UserID     string  `json:"user_id" gorm:"type:uuid;not null;uniqueIndex:idx_user_wallet_type"`
+	User       User    `json:"-" gorm:"foreignKey:UserID"`
+	WalletType string  `json:"wallet_type" gorm:"not null;uniqueIndex:idx_user_wallet_type"` // "consumer" or
+	Balance    float64 `json:"balance" gorm:"type:decimal(12,2);not null;default:0"`
 }
 
 // Join table: user ↔ role

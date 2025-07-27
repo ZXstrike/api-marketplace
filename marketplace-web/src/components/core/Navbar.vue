@@ -62,7 +62,6 @@ const authStore = useAuthStore();
 const router = useRouter();
 const isProfileOpen = ref(false);
 
-
 function handleLogout() {
   authStore.logout();
   router.push('/');

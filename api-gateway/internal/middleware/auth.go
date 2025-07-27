@@ -135,7 +135,7 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 	incomingKeyHash := sha256.Sum256([]byte(keyString))
 
 	var apiKey models.APIKey
-	err := db.Preload("Subscription.Consumer").
+	err := db.Preload("Subscription.Consumer.Wallets").
 		Preload("Subscription.APIVersion.API.Provider").
 		Where("key_value_hash = ?", incomingKeyHash[:]).
 		First(&apiKey).Error
@@ -147,6 +147,15 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 		return nil, fmt.Errorf("database error validating key: %w", err)
 	}
 
+	// Find the consumer's wallet and get the balance.
+	var consumerBalance float64
+	for _, wallet := range apiKey.Subscription.Consumer.Wallets {
+		if wallet.WalletType == "consumer" {
+			consumerBalance = wallet.Balance
+			break
+		}
+	}
+
 	// Manually map the preloaded data to the lightweight struct.
 	result := &CachedKeyInfo{
 		APIKeyID:       apiKey.ID,
@@ -155,7 +164,7 @@ func ValidateAPIKey(db *gorm.DB, keyString string) (*CachedKeyInfo, error) {
 		ProviderID:     apiKey.Subscription.APIVersion.API.Provider.ID,
 		APIID:          apiKey.Subscription.APIVersion.API.ID,
 		PricePerCall:   apiKey.Subscription.APIVersion.PricePerCall,
-		Balance:        apiKey.Subscription.Consumer.AccountBalance,
+		Balance:        consumerBalance,
 	}
 
 	return result, nil

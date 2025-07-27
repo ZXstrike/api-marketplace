@@ -56,6 +56,7 @@ func migration(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Role{},
+		&models.Wallet{}, // <-- Add this line
 		&models.UserRole{},
 		&models.Category{},
 		&models.API{},

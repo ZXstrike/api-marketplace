@@ -19,8 +19,8 @@
                         <th class="p-3">API Name</th>
                         <th class="p-3">Status</th>
                         <th class="p-3">Subscribers</th>
-                        <th class="p-3">Revenue (Mo)</th>
-                        <th class="p-3">Actions</th>
+                        <th class="p-3 text-right">Revenue (Mo)</th>
+                        <th class="p-3 text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -34,8 +34,8 @@
                             </span>
                         </td>
                         <td class="p-3 font-medium">{{ api.subscribers }}</td>
-                        <td class="p-3 font-medium text-green-600">${{ api.monthlyRevenue.toFixed(2) }}</td>
-                        <td class="p-3 flex space-x-2">
+                        <td class="p-3 font-semibold text-green-600 text-right">{{ formatCurrency(api.monthlyRevenue) }}</td>
+                        <td class="p-3 flex justify-center space-x-2">
                             <button @click="emitEditAPI(api.id)" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"><i
                                     data-feather="edit-2" class="w-4 h-4"></i></button>
                             <button class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"><i
@@ -63,6 +63,10 @@ defineProps({
 });
 
 const emit = defineEmits(['delete-api', 'edit-api']);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+};
 
 const emitDelete = (id) => {
     if (confirm('Are you sure you want to delete this API? This action cannot be undone.')) {

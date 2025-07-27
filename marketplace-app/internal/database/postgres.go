@@ -39,6 +39,7 @@ func migration(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Role{},
+		&models.Wallet{}, // <-- Add this line
 		&models.UserRole{},
 		&models.Category{},
 		&models.API{},
@@ -60,6 +61,10 @@ func migration(db *gorm.DB) {
 
 	// Create default roles if they don't exist
 	models.GenerateCategories(db)
+	models.GenerateAdminUser(db)
+	if err := models.MigrateUserBalancesToWallets(db); err != nil {
+		log.Fatalf("failed to migrate user balances: %v", err)
+	}
 
 	log.Println("✅ database migrated successfully")
 }

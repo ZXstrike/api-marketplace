@@ -26,33 +26,46 @@ func New(db *gorm.DB) Repository {
 }
 
 func (r *repository) CreateStore(ctx context.Context, user_id string) error {
-	var user models.User
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var user models.User
+		if err := tx.First(&user, "id = ?", user_id).Error; err != nil {
+			return err // User not found
+		}
 
-	if err := r.db.WithContext(ctx).First(&user, "id = ?", user_id).Error; err != nil {
-		return err
-	}
+		// Find or create the 'provider' role
+		var providerRole models.Role
+		if err := tx.Where("name = ?", "provider").FirstOrCreate(&providerRole, models.Role{Name: "provider", Description: "Owner of the store"}).Error; err != nil {
+			return err
+		}
 
-	var role models.Role
-	if err := r.db.WithContext(ctx).First(&role, "name = ?", "store_owner").Error; err != nil {
-		if r.db.WithContext(ctx).Where("name = ?", "store_owner").First(&role).RowsAffected == 0 {
-			// Create the role if it doesn't exist
-			role = models.Role{
-				Name:        "store_owner",
-				Description: "Owner of the store",
-			}
-			if err := r.db.WithContext(ctx).Create(&role).Error; err != nil {
+		// Assign the provider role to the user if they don't already have it
+		var userRole models.UserRole
+		if err := tx.Where("user_id = ? AND role_id = ?", user.ID, providerRole.ID).First(&userRole).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				userRole = models.UserRole{UserID: user.ID, RoleID: providerRole.ID}
+				if err := tx.Create(&userRole).Error; err != nil {
+					return err
+				}
+			} else {
 				return err
 			}
 		}
-	}
 
-	userRole := models.UserRole{
-		UserID: user.ID,
-		RoleID: role.ID,
-	}
+		// Create a provider wallet if one doesn't already exist
+		var providerWallet models.Wallet
+		if err := tx.Where("user_id = ? AND wallet_type = ?", user.ID, "provider").First(&providerWallet).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				providerWallet = models.Wallet{UserID: user.ID, WalletType: "provider", Balance: 0}
+				if err := tx.Create(&providerWallet).Error; err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 
-	return r.db.WithContext(ctx).Create(&userRole).Error
-
+		return nil // Commit transaction
+	})
 }
 
 func (r *repository) GetStoreByUserID(ctx context.Context, user_id string) (*models.User, error) {
@@ -62,7 +75,7 @@ func (r *repository) GetStoreByUserID(ctx context.Context, user_id string) (*mod
 	}
 
 	for _, role := range user.Roles {
-		if role.Name == "store_owner" {
+		if role.Name == "provider" {
 			return &user, nil
 		}
 	}
@@ -77,7 +90,7 @@ func (r *repository) GetStoreByUsername(ctx context.Context, username string) (*
 	}
 
 	for _, role := range user.Roles {
-		if role.Name == "store_owner" {
+		if role.Name == "provider" {
 			return &user, nil
 		}
 	}
@@ -91,7 +104,7 @@ func (r *repository) GetAllStores(ctx context.Context) ([]models.User, error) {
 		Distinct("users.*").
 		Joins("JOIN user_roles ON users.id = user_roles.user_id").
 		Joins("JOIN roles ON user_roles.role_id = roles.id").
-		Where("roles.name = ?", "store_owner").
+		Where("roles.name = ?", "provider").
 		Preload("Roles").
 		Find(&users).Error; err != nil {
 		return nil, err
