@@ -38,9 +38,9 @@
                     <section id="authentication" ref="sections" class="scroll-mt-24 py-16 border-b border-gray-200 dark:border-gray-800">
                         <h2 class="tracking-tight text-2xl font-bold !mb-2">Authentication</h2>
                         <p class="!mb-6">
-                            All requests to any API on the Go-API Mart platform must be authenticated using a Bearer Token scheme. You need to include your API key in the <code>Authorization</code> header for every request. You can find your personal API key for each subscription in your dashboard.
+                            All requests to any API on the Go-API Mart platform must be authenticated using an Api-key scheme. You need to include your API key in the <code>Authorization</code> header for every request. You can find your personal API key for each subscription in your dashboard.
                         </p>
-                        <pre class="!bg-gray-50 dark:!bg-gray-800/50 !rounded-xl !mb-6"><code class="language-http hljs">Token: YOUR_API_KEY</code></pre>
+                        <pre class="!bg-gray-50 dark:!bg-gray-800/50 !rounded-xl !mb-6"><code class="language-http hljs">Api-key: YOUR_API_KEY</code></pre>
                         
                         <div class="mt-8 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-500/30 flex items-start gap-4 not-prose">
                                 <svg class="h-6 w-6 text-amber-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -67,7 +67,7 @@
                         </p>
                         <pre class="!bg-gray-50 dark:!bg-gray-800/50 !rounded-xl"><code class="language-bash hljs">curl --request GET \
          --url 'https://seller_store.api.zxsttm.tech/geolocation/v1/ip/8.8.8.8' \
-         `--header 'Token: YOUR_API_KEY'`</code></pre>
+         `--header 'Api-key: YOUR_API_KEY'`</code></pre>
                     </section>
 
                     <section id="error-handling" ref="sections" class="scroll-mt-24 py-16">

@@ -56,7 +56,7 @@ func migration(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Role{},
-		&models.Wallet{}, // <-- Add this line
+		&models.Wallet{},
 		&models.UserRole{},
 		&models.Category{},
 		&models.API{},
@@ -69,7 +69,10 @@ func migration(db *gorm.DB) {
 		&models.PaymentTransaction{},
 		&models.MonthlyStatement{},
 		&models.ProviderPayout{},
-		// &models.RateLimitCounter{},  // optional: drop if using pure Redis
+		&models.PlatformFee{}, // <-- Add this line
+		&models.PlatformRevenue{},
+		&models.PlatformWallet{},
+		&models.SystemSetting{}, // <-- Add this line
 	)
 
 	if err != nil {

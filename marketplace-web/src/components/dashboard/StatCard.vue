@@ -4,12 +4,12 @@
       <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">{{ title }}</h3>
       <i :data-feather="icon" :class="iconColorClass"></i>
     </div>
-    <p class="text-3xl font-bold mt-2">{{ value }}</p>
+    <p class="text-2xl font-bold !mt-2">{{ value }}</p>
   </div>
 </template>
 
 <script setup>
-import { defineProps, computed, onMounted, nextTick } from 'vue';
+import { computed, onMounted, nextTick } from 'vue';
 
 const props = defineProps({
   title: {

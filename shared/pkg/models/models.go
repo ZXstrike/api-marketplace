@@ -6,6 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	// WalletTypeConsumer represents a consumer wallet type.
+	WalletTypeConsumer = "consumer"
+	// WalletTypeProvider represents a provider wallet type.
+	WalletTypeProvider = "provider"
+)
+
 // Base model with common timestamps & soft‑delete
 type Base struct {
 	CreatedAt time.Time      `json:"-" gorm:"column:created_at;autoCreateTime"`
@@ -71,7 +78,7 @@ type API struct {
 	ID          string       `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	ProviderID  string       `json:"provider_id" gorm:"type:uuid;not null;uniqueIndex:idx_provider_slug"`
 	Provider    User         `json:"provider,omitempty" gorm:"foreignKey:ProviderID"`
-	Slug        string       `json:"slug" gorm:";uniqueIndex:idx_provider_slug"`
+	Slug        string       `json:"slug" gorm:"uniqueIndex:idx_provider_slug"`
 	Name        string       `json:"name" gorm:"not null"`
 	IconURL     string       `json:"icon_url" gorm:"type:varchar(255)"`
 	Description string       `json:"description" gorm:"type:text"`
@@ -168,15 +175,9 @@ type MonthlyStatement struct {
 	GeneratedAt    time.Time `json:"generated_at" gorm:"autoCreateTime"`
 }
 
-// Optional fallback: rate‑limit counters
-type RateLimitCounter struct {
-	APIKeyID    string    `json:"api_key_id" gorm:"primaryKey;type:uuid"`
-	WindowStart time.Time `json:"window_start" gorm:"autoCreateTime"`
-	CallCount   int       `json:"call_count" gorm:"not null"`
-}
-
 // Provider payout ledger
 type ProviderPayout struct {
+	Base
 	ID             string        `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	ProviderID     string        `json:"provider_id" gorm:"type:uuid;not null;index"`
 	Provider       User          `json:"provider,omitempty" gorm:"foreignKey:ProviderID"`
@@ -187,5 +188,43 @@ type ProviderPayout struct {
 	GrossAmount    float64       `json:"gross_amount" gorm:"type:decimal(12,2);not null"`
 	PlatformFee    float64       `json:"platform_fee" gorm:"type:decimal(12,2);not null"`
 	NetAmount      float64       `json:"net_amount" gorm:"type:decimal(12,2);not null"`
-	CreatedAt      time.Time     `json:"created_at" gorm:"autoCreateTime"`
+}
+
+// PlatformFee stores the percentage the platform takes from provider earnings.
+// Storing it this way allows for a history of fee changes.
+type PlatformFee struct {
+	Base
+	ID            string    `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	Percentage    float64   `json:"percentage" gorm:"type:decimal(5,4);not null"` // e.g., 0.0500 for 5%
+	EffectiveFrom time.Time `json:"effective_from" gorm:"not null;uniqueIndex"`
+	Description   string    `json:"description,omitempty" gorm:"type:text"`
+}
+
+// PlatformRevenue records income earned by the platform, such as fees from provider payouts.
+type PlatformRevenue struct {
+	Base
+	ID              string          `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	SourcePayoutID  *string         `json:"source_payout_id,omitempty" gorm:"type:uuid;index"` // Link to the provider payout that generated this fee
+	SourcePayout    *ProviderPayout `json:"source_payout,omitempty" gorm:"foreignKey:SourcePayoutID"`
+	Amount          float64         `json:"amount" gorm:"type:decimal(12,2);not null"`
+	TransactionTime time.Time       `json:"transaction_time" gorm:"autoCreateTime"`
+	Description     string          `json:"description" gorm:"type:text"`
+}
+
+// PlatformWallet stores the platform's main financial balance.
+// This is the aggregate of all platform revenues minus any platform expenses.
+type PlatformWallet struct {
+	Base
+	ID      string  `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	Name    string  `json:"name" gorm:"uniqueIndex;not null;default:'main'"` // e.g., 'main', 'reserve'
+	Balance float64 `json:"balance" gorm:"type:decimal(15,2);not null;default:0"`
+}
+
+// SystemSetting represents a key-value pair for system-wide configuration.
+// This allows for dynamic settings without requiring code changes.
+type SystemSetting struct {
+	Key         string    `json:"key" gorm:"primaryKey;type:varchar(255)"`
+	Value       string    `json:"value" gorm:"type:text;not null"`
+	Description string    `json:"description,omitempty" gorm:"type:text"`
+	UpdatedAt   time.Time `json:"-" gorm:"column:updated_at;autoUpdateTime"`
 }

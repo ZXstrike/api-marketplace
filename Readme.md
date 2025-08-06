@@ -1,196 +1,150 @@
-# API Marketplace Platform
+# Go-API Mart: Platform Marketplace API
 
-An open-source, modular API marketplace platform built with a microservices architecture using Go for the backend, Vue.js for the frontend, and Nginx as a reverse proxy. This platform allows developers to publish their APIs, manage subscriptions, and provides consumers with a central place to discover and subscribe to APIs. It includes features like robust authentication, rate limiting, and billing.
+![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go)
+![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker)
+![Nginx](https://img.shields.io/badge/Nginx-blue?style=for-the-badge&logo=nginx)
 
-## Table of Contents
+**Go-API Mart** adalah platform marketplace API *open-source* yang dibangun dengan arsitektur *microservices*. Platform ini memungkinkan developer untuk mempublikasikan, mengelola, dan memonetisasi API mereka, sementara konsumen dapat dengan mudah menemukan, berlangganan, dan menggunakan berbagai API dalam satu tempat terpusat.
 
-- [Architecture](#architecture)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Setup](#setup)
-- [Development](#development)
-- [API Documentation](#api-documentation)
-- [License](#license)
-- [Author](#author)
+## Arsitektur
 
-## Architecture
+Proyek ini mengadopsi arsitektur berbasis *microservices* untuk memastikan skalabilitas, pemeliharaan, dan pemisahan tugas yang jelas.
 
-The platform is designed using a microservices architecture to ensure scalability and maintainability. The core components are:
+```mermaid
+graph TD
+    subgraph "Pengguna (Browser)"
+        A[Marketplace Web - Vue.js]
+    end
 
--   **Marketplace App**: The main backend service responsible for user management, API listings, subscriptions, and billing logic.
--   **API Gateway**: Handles all incoming requests, providing authentication, rate limiting, and routing to the appropriate backend services.
--   **Marketplace Web**: A Vue.js single-page application for the user interface.
--   **Nginx**: Acts as a reverse proxy, directing traffic to the appropriate service.
+    subgraph "Infrastruktur"
+        B(Nginx - Reverse Proxy)
+    end
 
-## Features
+    subgraph "Backend Services"
+        C(API Gateway - Go)
+        D(Marketplace App - Go)
+    end
 
--   **Microservices Architecture**: Scalable and maintainable project structure.
--   **User & API Management**: Endpoints for managing users, APIs, and subscriptions.
--   **JWT Authentication**: Secure authentication using ECDSA-based JWT.
--   **Rate Limiting**: Protects your APIs from abuse.
--   **Billing & Subscriptions**: A system for managing API subscription plans and billing.
--   **Containerized**: Easy to deploy and manage with Docker.
+    subgraph "Penyimpanan Data"
+        E(PostgreSQL - Database Utama)
+        F(Redis - Caching & Rate Limiting)
+    end
 
-## Technologies Used
+    A -- HTTPS --> B
+    B -- /api/v1/... --> C
+    B -- / --> A
+    C -- gRPC/HTTP --> D
+    D <--> E
+    C <--> F
+    D <--> F
+```
+
+-   **Marketplace Web (Vue.js)**: *Single-Page Application* (SPA) yang menjadi antarmuka utama bagi semua pengguna (konsumen, provider, admin).
+-   **Nginx**: Berfungsi sebagai *reverse proxy* yang mengarahkan trafik masuk ke layanan frontend atau backend yang sesuai.
+-   **API Gateway (Go)**: Pintu gerbang utama untuk semua permintaan API. Bertugas untuk otentikasi (validasi JWT), *rate limiting*, dan *routing* ke layanan internal.
+-   **Marketplace App (Go)**: Layanan utama yang menangani semua logika bisnis, termasuk manajemen pengguna, pendaftaran API, langganan, penagihan, dan dompet digital.
+-   **PostgreSQL**: Database relasional untuk menyimpan semua data persisten seperti pengguna, API, transaksi, dll.
+-   **Redis**: Digunakan untuk *caching* data sesi, dan implementasi *rate limiting*.
+
+## Fitur Utama
+
+-   **Manajemen Pengguna & Otentikasi**: Registrasi, login, dan manajemen profil dengan otentikasi aman menggunakan JWT (berbasis ECDSA).
+-   **Dasbor Terpisah**: Dasbor khusus untuk **Konsumen** (mengelola langganan & kunci API), **Provider** (mengelola API & melihat pendapatan), dan **Admin** (mengelola platform).
+-   **Publikasi API**: Provider dapat mendaftarkan API mereka, menentukan *endpoint*, dan mengatur harga per panggilan.
+-   **Sistem Langganan & Kunci API**: Konsumen dapat berlangganan API dan membuat kunci API unik untuk setiap langganan.
+-   **Sistem Dompet & Penagihan**: Pengguna dapat mengisi saldo (top-up) dan saldo akan otomatis terpotong setiap kali ada pemanggilan API.
+-   **Rate Limiting**: Melindungi API dari penyalahgunaan dengan membatasi jumlah permintaan per periode waktu.
+-   **Siap Produksi dengan Docker**: Seluruh platform dikemas dalam kontainer untuk kemudahan deployment dan skalabilitas.
+
+## Teknologi yang Digunakan
 
 -   **Backend**: Go
--   **Frontend**: Vue.js, Vite
--   **Database**: PostgreSQL, Redis
+-   **Frontend**: Vue.js 3 (Vite), Pinia, TailwindCSS
+-   **Database**: PostgreSQL (penyimpanan utama), Redis (caching, rate limiting)
 -   **Reverse Proxy**: Nginx
--   **Containerization**: Docker, Docker Compose
+-   **Containerization**: Docker & Docker Compose
 
-## Project Structure
+## Struktur Proyek
 
 ```
 .
-├── api-gateway/         # API Gateway service
-├── marketplace-app/     # Main marketplace backend service
-├── marketplace-web/     # Frontend Vue.js application
-├── nginx/               # Nginx configuration
-├── shared/              # Shared Go libraries (JWT, models, etc.)
-├── project-docs/        # Project documentation
-├── docker-compose.yml   # Docker orchestration
-├── makefile             # Development commands
-└── ...
+├── api-gateway/         # Layanan API Gateway (Go)
+├── marketplace-app/     # Layanan Backend Utama (Go)
+├── marketplace-web/     # Aplikasi Frontend (Vue.js)
+├── nginx/               # Konfigurasi Nginx (dev & prod)
+├── shared/              # Pustaka bersama untuk backend (model, JWT, dll.)
+├── project-docs/        # Dokumentasi proyek
+├── secrets/             # Kunci ECDSA untuk JWT
+├── docker-compose.yml   # Orkestrasi Docker untuk development
+├── docker-compose.prod.yml # Orkestrasi Docker untuk production
+└── makefile             # Perintah-perintah untuk mempermudah development
 ```
 
-## Getting Started
+## Memulai Proyek
 
-### Prerequisites
+### Prasyarat
 
--   [Go](https://golang.org/dl/) (1.24+ recommended)
--   [Node.js](https://nodejs.org/) (for frontend development)
+-   [Go](https://golang.org/dl/) (v1.24+ direkomendasikan)
+-   [Node.js](https://nodejs.org/) (v18+ direkomendasikan)
 -   [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
--   [Make](https://www.gnu.org/software/make/) (optional, for convenience)
+-   [Make](https://www.gnu.org/software/make/) (opsional, untuk kemudahan)
 
-### Setup
+### Instalasi
 
-1.  **Clone the repository:**
+1.  **Clone repository:**
     ```sh
     git clone https://github.com/ZXstrike/api-marketplace.git
     cd api-marketplace
     ```
 
-2.  **Configure environment variables:**
-    Copy the example `.env` file and modify it if needed.
+2.  **Konfigurasi Environment:**
+    Salin file `.env.example` menjadi `.env`. Tidak perlu ada perubahan untuk menjalankan di mode development.
     ```sh
     cp .env.example .env
     ```
 
-3.  **Generate ECDSA keys for JWT:**
+3.  **Buat Kunci JWT:**
+    Jalankan perintah ini untuk membuat pasangan kunci `private_key.pem` dan `public_key.pem` di dalam folder `secrets/`.
     ```sh
     make gen-keys
     ```
 
-4.  **Run the entire platform with Docker Compose:**
-    This is the recommended way to run the project for development.
+4.  **Jalankan dengan Docker Compose (Direkomendasikan):**
+    Perintah ini akan membangun *image* dan menjalankan semua layanan yang dibutuhkan (Postgres & Redis).
     ```sh
-    docker-compose up --build
-    ```
-    The services will be available at:
-    -   **Frontend**: `http://localhost:5173`
-    -   **API Gateway**: `http://localhost:8080`
-    -   **Marketplace App**: `http://localhost:8081`
-
-
-## Development
-
-### Running Services Individually
-
-If you prefer not to use Docker Compose, you can run each service manually.
-
--   **Start Databases & Services:**
-    ```sh
-    make dev-up
+    docker-compose up -d
     ```
 
--   **Stop Databases & Services:**
+5.  **Jalankan Layanan Backend:**
+    Buka dua terminal terpisah dan jalankan:
     ```sh
-    make dev-down
-    ```
-
--   **Run Marketplace App:**
-    ```sh
+    # Terminal 1: Jalankan Marketplace App
     make run-market
-    ```
 
--   **Run API Gateway:**
-    ```sh
+    # Terminal 2: Jalankan API Gateway
     make run-gateway
     ```
 
--   **Run Frontend:**
+6.  **Jalankan Layanan Frontend:**
+    Buka terminal ketiga untuk menjalankan aplikasi Vue.js.
     ```sh
     cd marketplace-web
     npm install
     npm run dev
     ```
 
-### Running in Production Mode
+7.  **Selesai!**
+    Platform sekarang dapat diakses di:
+    -   **Frontend**: `http://localhost:5173`
+    -   **API Gateway**: `http://localhost:8082` (sesuai `.env`)
+    -   **Marketplace App**: `http://localhost:8081` (sesuai `.env`)
 
--   **Build production Docker images:**
-    ```sh
-    make build-prod
-    ```
+## Dokumentasi API
 
--   **Start all services in production mode:**
-    ```sh
-    make prod-up
-    ```
+Dokumentasi lengkap untuk semua *endpoint* REST API tersedia di file [project-docs/endpoint_new.md](project-docs/endpoint_new.md).
 
--   **Stop all production services:**
-    ```sh
-    make prod-down
-    ```
+## Lisensi
 
-### Running Tests
-
--   **Run all tests for Go services:**
-    ```sh
-    make test
-    ```
-
-### Database Migration
-
--   **Apply database migrations:**
-    ```sh
-    make migrate
-    ```
-
-## API Documentation
-
-The API endpoints are documented in `project-docs/endpoint.md`.
-
-## License
-
-This project is for educational purposes.
-
-## Local Development with Subdomain Routing
-
-If you want to use the API Gateway with subdomain-based routing (for example, to support multi-tenant APIs or per-API subdomains), you must access your services via a real domain or DNS entry that supports subdomains. Browsers and HTTP clients only send the correct Host header (and thus subdomain) when using a proper domain, not just localhost or an IP address.
-
-### Setting Up Local DNS for Subdomains
-
-1. **Edit your hosts file** to point a wildcard domain to 127.0.0.1. On Windows, open `C:\Windows\System32\drivers\etc\hosts` as Administrator and add lines like:
-   ```
-   127.0.0.1 app.test
-   127.0.0.1 api.app.test
-   # Add more subdomains as needed (wildcards are not supported in Windows hosts file)
-   ```
-
-2. **Configure the Vite dev server** to accept these domains. This project already allows `app.test` and `.app.test` in `vite.config.js`.
-
-3. **Access your services** using the domain, for example:
-   - Frontend: http://app.test:5173
-   - API Gateway: http://api.app.test:8080
-
-4. **For production**, configure your DNS provider to point your domain and wildcard subdomains to your server's IP address.
-
-> **Note:** Subdomain-based routing will not work with just `localhost` or an IP address. You must use a real domain or DNS entry for the API Gateway to properly route requests based on subdomain.
-
----
-
-**Author:** ZXstrike
+Proyek ini dibuat untuk tujuan edukasi dan portofolio.

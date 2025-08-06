@@ -184,6 +184,34 @@ func createWalletIfNotExists(db *gorm.DB, userID, walletType string, balance flo
 	}
 }
 
+// GenerateSystemSettings creates default key-value settings for the platform.
+func GenerateSystemSettings(db *gorm.DB) error {
+	defaultSettings := map[string]string{
+		"platform_fee_percentage": "0.05", // Represents a 5% fee
+		"rate_limit_per_minute":   "1000", // Default rate limit
+	}
+
+	for key, value := range defaultSettings {
+		var count int64
+		db.Model(&SystemSetting{}).Where("key = ?", key).Count(&count)
+
+		if count == 0 {
+			setting := SystemSetting{
+				Key:   key,
+				Value: value,
+			}
+			if err := db.Create(&setting).Error; err != nil {
+				log.Printf("❌ failed to create system setting '%s': %v", key, err)
+				return err
+			}
+			log.Printf("✅ created system setting '%s'", key)
+		} else {
+			log.Printf("✅ system setting '%s' already exists", key)
+		}
+	}
+	return nil
+}
+
 func GenerateSlug(name string) string {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	return slug

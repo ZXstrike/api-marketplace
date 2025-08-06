@@ -1,23 +1,29 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 
 	"github.com/ZXstrike/shared/pkg/models"
 	"gorm.io/gorm"
 )
 
+// Repository defines the interface for all billing-related database operations.
 type Repository interface {
 	GetBalanceByUserIDAndType(userID, walletType string) (float64, error)
 	TopUpBalanceByUserIDAndType(userID, walletType string, amount float64) error
 	DeductBalanceByUserIDAndType(userID, walletType string, amount float64) error
 	GetPaymentHistory(userID string) ([]models.PaymentTransaction, error)
+	ProcessPayoutTransaction(ctx context.Context, payout *models.ProviderPayout, revenue *models.PlatformRevenue) error
 }
+
+// The BillingRepository interface has been merged into the main Repository interface for simplicity.
 
 type repository struct {
 	db *gorm.DB
 }
 
+// New creates a new instance of the billing repository.
 func New(db *gorm.DB) Repository {
 	return &repository{db}
 }
@@ -101,4 +107,33 @@ func (r *repository) GetPaymentHistory(userID string) ([]models.PaymentTransacti
 	}
 
 	return payments, nil
+}
+
+// ProcessPayoutTransaction creates a provider payout and a platform revenue record
+// within a single database transaction.
+func (r *repository) ProcessPayoutTransaction(ctx context.Context, payout *models.ProviderPayout, revenue *models.PlatformRevenue) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 1. Create the ProviderPayout record
+		if err := tx.Create(payout).Error; err != nil {
+			return err
+		}
+
+		// 2. Create the corresponding PlatformRevenue record
+		// Link the revenue record to the payout that was just created.
+		revenue.SourcePayoutID = &payout.ID
+		if err := tx.Create(revenue).Error; err != nil {
+			return err
+		}
+
+		// 3. (Optional) You could also update the provider's wallet here
+		// For example:
+		// result := tx.Model(&models.Wallet{}).
+		// 	Where("user_id = ? AND wallet_type = ?", payout.ProviderID, "provider").
+		// 	Update("balance", gorm.Expr("balance + ?", payout.NetAmount))
+		// if result.Error != nil {
+		// 	return result.Error
+		// }
+
+		return nil
+	})
 }

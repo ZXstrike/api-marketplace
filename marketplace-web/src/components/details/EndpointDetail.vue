@@ -23,7 +23,7 @@ const docString = computed(() => {
 `;
   curl += `--url '${props.baseUrl}${props.endpoint.path}'
 `;
-  curl += `--header 'Token: YOUR_API_KEY'`;
+  curl += `--header 'Api-key: YOUR_API_KEY'`;
   
   const requestExample = `## Base Request Example\n\n\`\`\`bash\n${curl}\n\`\`\``;
 

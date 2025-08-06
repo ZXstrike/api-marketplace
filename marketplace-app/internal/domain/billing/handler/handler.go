@@ -2,8 +2,10 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/ZXstrike/marketplace-app/internal/domain/billing/service"
+	"github.com/ZXstrike/shared/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -104,4 +106,39 @@ func (h *Handler) GetPaymentHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"payment_history": history,
 	})
+}
+
+// HandleCreatePayout processes a request to create a new provider payout.
+func (h *Handler) HandleCreatePayout(c *gin.Context) {
+	// This is an example handler. You might trigger this manually via an admin dashboard.
+	var payoutRequest struct {
+		ProviderID  string    `json:"provider_id" binding:"required"`
+		PeriodStart time.Time `json:"period_start" binding:"required"`
+		PeriodEnd   time.Time `json:"period_end" binding:"required"`
+		// GrossAmount and PlatformFee would likely be calculated by the service, not passed in.
+	}
+
+	if err := c.ShouldBindJSON(&payoutRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// In a real scenario, you'd calculate these values based on usage logs.
+	// For this example, we'll use placeholder values.
+	payoutData := &models.ProviderPayout{
+		ProviderID:  payoutRequest.ProviderID,
+		PeriodStart: payoutRequest.PeriodStart,
+		PeriodEnd:   payoutRequest.PeriodEnd,
+		GrossAmount: 1000.00, // Example value
+		PlatformFee: 50.00,   // Example value
+		NetAmount:   950.00,  // Example value
+	}
+
+	createdPayout, err := h.service.ProcessAndCreatePayout(c.Request.Context(), payoutData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, createdPayout)
 }

@@ -50,7 +50,13 @@ const routes = [
   {
     path: "/dashboard",
     name: "dashboard",
-    component: () => import("@/views/DashboardView.vue"),
+    component: () => import("@/views/ConsumerDashboardView.vue"),
+    meta: { requiresAuth: true }, // meta field untuk proteksi route
+  },
+  {
+    path: "/store",
+    name: "store",
+    component: () => import("@/views/ProviderDashboardView.vue"),
     meta: { requiresAuth: true }, // meta field untuk proteksi route
   },
   {

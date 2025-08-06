@@ -39,7 +39,7 @@ func migration(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Role{},
-		&models.Wallet{}, // <-- Add this line
+		&models.Wallet{},
 		&models.UserRole{},
 		&models.Category{},
 		&models.API{},
@@ -52,7 +52,10 @@ func migration(db *gorm.DB) {
 		&models.PaymentTransaction{},
 		&models.MonthlyStatement{},
 		&models.ProviderPayout{},
-		// &models.RateLimitCounter{},  // optional: drop if using pure Redis
+		&models.PlatformFee{}, // <-- Add this line
+		&models.PlatformRevenue{},
+		&models.PlatformWallet{},
+		&models.SystemSetting{}, // <-- Add this line
 	)
 
 	if err != nil {
@@ -62,6 +65,9 @@ func migration(db *gorm.DB) {
 	// Create default roles if they don't exist
 	models.GenerateCategories(db)
 	models.GenerateAdminUser(db)
+	models.GenerateSystemSettings(db)
+
+	// Migrate user balances to wallets
 	if err := models.MigrateUserBalancesToWallets(db); err != nil {
 		log.Fatalf("failed to migrate user balances: %v", err)
 	}

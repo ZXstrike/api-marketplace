@@ -22,6 +22,7 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 		billing.PUT("/update-balance", middleware.AuthMiddleware(publicKey), h.TopUp)
 		billing.POST("/payment", middleware.AuthMiddleware(publicKey), h.ProcessPayment)
 		billing.GET("/history", middleware.AuthMiddleware(publicKey), h.GetPaymentHistory)
+		billing.POST("/payout", middleware.AuthMiddleware(publicKey), h.HandleCreatePayout)
 	}
 
 }
