@@ -3,12 +3,12 @@
     <main class="container mx-auto px-6 py-8 md:py-12">
       <div class="lg:flex lg:gap-8">
 
-        <FiltersSidebar 
+        <!-- <FiltersSidebar 
           class="lg:w-1/4 xl:w-1/5 mb-8 lg:mb-0"
           :categories="allCategories" 
           @filter-change="applyCategoryFilter"
           @clear-filters="clearAllFilters"
-        />
+        /> -->
 
         <div class="flex flex-1 flex-col gap-6">
 
@@ -61,11 +61,11 @@ const fetchApis = async () => {
     });
 
     if (searchQuery.value) {
-      params.append('search', searchQuery.value);
+      params.append('query', searchQuery.value);
     }
-    if (activeCategory.value) {
-      params.append('category', activeCategory.value);
-    }
+    // if (activeCategory.value) {
+    //   params.append('category', activeCategory.value);
+    // }
 
     // Menggunakan apiClient.get dengan endpoint yang sudah termasuk query string
     const response = await apiClient.get(`/api/all?${params.toString()}`);

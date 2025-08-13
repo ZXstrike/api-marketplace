@@ -16,7 +16,7 @@ type Repository interface {
 	GetRecentAllTopUps() ([]models.PaymentTransaction, error)
 	CreateAPI(api models.API, pricePercall float64) (string, error)
 	GetAPIByID(id string) (*models.API, error)
-	GetAllAPI(page int, length int) ([]models.API, error)
+	GetAllAPI(page int, length int, query string) ([]models.API, error)
 	GetAllAPIByUserID(userID string) ([]models.API, error)
 	UpdateAPI(api models.API) error
 	DeleteAPI(id string) error
@@ -160,31 +160,34 @@ func (r *repository) GetAPIByID(id string) (*models.API, error) {
 	return &api, nil
 }
 
-func (r *repository) GetAllAPI(page int, length int) ([]models.API, error) {
-	var apis []models.API
+func (r *repository) GetAllAPI(page int, length int, query string) ([]models.API, error) {
+	if page < 1 {
+		page = 1
+	}
+	if length <= 0 {
+		length = 10
+	}
 
-	// Chain all Preload calls, then apply pagination, and finally execute Find.
-	err := r.db.
+	var apis []models.API
+	db := r.db.
 		Preload("Provider").
 		Preload("Categories").
-		Preload("Versions.Endpoints").
+		Preload("Versions.Endpoints")
+
+	if query = strings.TrimSpace(query); query != "" {
+		// Postgres: ILIKE. If not Postgres, switch to LOWER(name) LIKE LOWER(?)
+		db = db.Where("name ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%")
+	}
+
+	err := db.
 		Offset((page - 1) * length).
 		Limit(length).
 		Find(&apis).Error
-
 	if err != nil {
-		// This will catch actual database errors.
-		// GORM's Find on a slice typically doesn't return gorm.ErrRecordNotFound for an empty result set;
-		// it returns an empty slice and a nil error.
 		return nil, err
 	}
 
-	// This check was in your original code. It makes "no records found" an error condition.
-	// If this is the desired behavior, it should be kept.
-	if len(apis) == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-
+	// Return empty slice (usual pattern).
 	return apis, nil
 }
 

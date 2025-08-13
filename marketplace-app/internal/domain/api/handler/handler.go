@@ -116,6 +116,12 @@ func (h *Handler) GetAllAPIs(c *gin.Context) {
 	if length == "" {
 		length = "10" // Default to 10 items per page if not provided
 	}
+
+	query := c.Query("query")
+	if query == "" {
+		query = "" // Default to empty query if not provided
+	}
+
 	// Convert page and length to integers
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -128,7 +134,7 @@ func (h *Handler) GetAllAPIs(c *gin.Context) {
 		return
 	}
 
-	apis, err := h.service.GetAllAPIs(pageInt, lengthInt)
+	apis, err := h.service.GetAllAPIs(pageInt, lengthInt, query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch APIs: " + err.Error()})
 		return

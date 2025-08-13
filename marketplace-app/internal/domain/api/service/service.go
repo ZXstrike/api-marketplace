@@ -15,7 +15,7 @@ type Service interface {
 	CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) (string, error)
 	UpdateAPI(apiID string, name string, desc string, baseUrl string, pricePerCall float64, categories []string) error
 	DeleteAPI(userId string, apiId string) error
-	GetAllAPIs(page int, lenght int) ([]models.API, error)
+	GetAllAPIs(page int, lenght int, query string) ([]models.API, error)
 	GetAllAPIsByUserID(userID string) ([]models.API, error)
 	CreateAPIEndpoint(apiVersion string, endpoints []models.Endpoint) error
 	UpdateAPIEndpoint(apiVersion string, endpoints []models.Endpoint) error
@@ -168,8 +168,8 @@ func (s *service) GetAPIByID(id string) (*models.API, error) {
 	return s.repo.GetAPIByID(id)
 }
 
-func (s *service) GetAllAPIs(page int, lenght int) ([]models.API, error) {
-	return s.repo.GetAllAPI(page, lenght)
+func (s *service) GetAllAPIs(page int, lenght int, query string) ([]models.API, error) {
+	return s.repo.GetAllAPI(page, lenght, query)
 }
 
 func (s *service) GetAllAPIsByUserID(userID string) ([]models.API, error) {
