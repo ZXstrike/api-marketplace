@@ -45,8 +45,11 @@ func (s *service) GetBillingInfo(userID, walletType string) (map[string]interfac
 		}
 		userBalance = balance
 	} else {
-		
-		
+		balance, err := s.r.GetPlatformWalletBalance()
+		if err != nil {
+			return nil, err
+		}
+		userBalance = balance
 	}
 
 	return map[string]interface{}{

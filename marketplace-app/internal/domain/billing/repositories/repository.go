@@ -11,6 +11,7 @@ import (
 // Repository defines the interface for all billing-related database operations.
 type Repository interface {
 	GetBalanceByUserIDAndType(userID, walletType string) (float64, error)
+	GetPlatformWalletBalance() (float64, error)
 	TopUpBalanceByUserIDAndType(userID, walletType string, amount float64) error
 	DeductBalanceByUserIDAndType(userID, walletType string, amount float64) error
 	GetPaymentHistory(userID string) ([]models.PaymentTransaction, error)
@@ -31,6 +32,14 @@ func New(db *gorm.DB) Repository {
 func (r *repository) GetBalanceByUserIDAndType(userID, walletType string) (float64, error) {
 	var wallet models.Wallet
 	if err := r.db.Where("user_id = ? AND wallet_type = ?", userID, walletType).First(&wallet).Error; err != nil {
+		return 0, err
+	}
+	return wallet.Balance, nil
+}
+
+func (r *repository) GetPlatformWalletBalance() (float64, error) {
+	var wallet models.PlatformWallet
+	if err := r.db.Where("name = ?", "main").First(&wallet).Error; err != nil {
 		return 0, err
 	}
 	return wallet.Balance, nil

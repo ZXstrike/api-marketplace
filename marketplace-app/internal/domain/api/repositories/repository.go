@@ -1,12 +1,19 @@
 package repositories
 
 import (
+	"strings"
+	"time"
+
 	"github.com/ZXstrike/shared/pkg/models"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	GetUserByID(id string) (*models.User, error)
+	GetApiTotalNumbers() (int64, error)
+	GetUserTotalNumbers() (int64, error)
+	GetTransaction24HNumbers() (int64, error)
+	GetRecentAllTopUps() ([]models.PaymentTransaction, error)
 	CreateAPI(api models.API, pricePercall float64) (string, error)
 	GetAPIByID(id string) (*models.API, error)
 	GetAllAPI(page int, length int) ([]models.API, error)
@@ -42,6 +49,74 @@ func (r *repository) GetUserByID(id string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *repository) GetApiTotalNumbers() (int64, error) {
+	var count int64
+	if err := r.db.Model(&models.API{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) GetUserTotalNumbers() (int64, error) {
+	var count int64
+	if err := r.db.Model(&models.User{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) GetTransaction24HNumbers() (int64, error) {
+	var count int64
+	cutoff := time.Now().Add(-24 * time.Hour)
+
+	tx := r.db.Model(&models.PaymentTransaction{}).
+		Where("created_at >= ?", cutoff).
+		Count(&count)
+
+	if tx.Error != nil {
+		// Handle missing column gracefully
+		if strings.Contains(tx.Error.Error(), `column "created_at" does not exist`) {
+			// Attempt to add the column (requires model definition to have CreatedAt)
+			if err := r.db.Migrator().AddColumn(&models.PaymentTransaction{}, "CreatedAt"); err == nil {
+				// Retry with the time filter after adding column
+				if retryErr := r.db.Model(&models.PaymentTransaction{}).
+					Where("created_at >= ?", cutoff).
+					Count(&count).Error; retryErr == nil {
+					return count, nil
+				}
+			}
+		}
+		return 0, tx.Error
+	}
+
+	return count, nil
+}
+
+func (r *repository) GetRecentAllTopUps() ([]models.PaymentTransaction, error) {
+	var transactions []models.PaymentTransaction
+
+	tx := r.db.Preload("User").Preload("Subscription").Model(&models.PaymentTransaction{}).Limit(100).Order("created_at desc").Find(&transactions)
+
+	if tx.Error != nil {
+		// Handle missing column gracefully
+		if strings.Contains(tx.Error.Error(), `column "created_at" does not exist`) {
+			// Attempt to add the column (requires model definition to have CreatedAt)
+			if err := r.db.Migrator().AddColumn(&models.PaymentTransaction{}, "CreatedAt"); err == nil {
+				// Retry with the time filter after adding column
+				if retryErr := r.db.Preload("User").Preload("Subscription").Model(&models.PaymentTransaction{}).
+					Limit(50).Error; retryErr == nil {
+
+					return transactions, nil
+				}
+			}
+
+		}
+		return nil, tx.Error
+	}
+
+	return transactions, nil
 }
 
 func (r *repository) CreateAPI(api models.API, pricePercall float64) (string, error) {

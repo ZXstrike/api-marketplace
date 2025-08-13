@@ -155,6 +155,7 @@ type UsageLog struct {
 
 // Wallet transactions (top‑up, charges, payouts)
 type PaymentTransaction struct {
+	Base
 	ID              string        `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 	UserID          string        `json:"user_id" gorm:"type:uuid;not null;index"`
 	User            User          `json:"user,omitempty" gorm:"foreignKey:UserID"`

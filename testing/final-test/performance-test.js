@@ -20,7 +20,7 @@ export const options = {
 export default function () {
   const url = 'http://traykun.gateway.test/deck_of_cards/deck/new/';
   const params = {
-    headers: { 'Api-Key': 'mk_live_demo_t42A1M2ruNLKhn33gOV3TB0WYhqZLw9cbgTB9TEwwEbkx-hPEHvS7wHUyW1jUmGQxdERArkSdAHUOFsIeYWEdQ==' },
+    headers: { 'Api-Key': 'mk_live_demo_kEK8bsS-MXI9JxskMh1orwRcx2zKqQsez-ImTdbP1A48-KMkQCxuOsHDIsk3cv1sHwfhNshrQuR75L6BNFBN3Q==' },
   };
 
   const res = http.get(url, params);

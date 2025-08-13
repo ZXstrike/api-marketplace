@@ -9,14 +9,14 @@
         <i data-feather="package" class="w-5 h-5 mr-3"></i>
         <span>My APIs</span>
       </a>
-      <a href="#" @click.prevent="$emit('navigate', 'analytics')" :class="{'active': activeSection === 'analytics'}" class="sidebar-link">
+      <!-- <a href="#" @click.prevent="$emit('navigate', 'analytics')" :class="{'active': activeSection === 'analytics'}" class="sidebar-link">
           <i data-feather="bar-chart-2" class="w-5 h-5 mr-3"></i>
           <span>Analytics</span>
       </a>
       <a href="#" class="sidebar-link">
           <i data-feather="settings" class="w-5 h-5 mr-3"></i>
           <span>Store Settings</span>
-      </a>
+      </a> -->
     </nav>
   </aside>
 </template>

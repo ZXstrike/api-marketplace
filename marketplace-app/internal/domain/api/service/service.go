@@ -11,6 +11,7 @@ import (
 
 type Service interface {
 	GetAPIByID(id string) (*models.API, error)
+	GetAdminData() (map[string]interface{}, error)
 	CreateNewAPI(name string, desc string, providerId string, baseUrl string, pricePerCall float64, categories []string) (string, error)
 	UpdateAPI(apiID string, name string, desc string, baseUrl string, pricePerCall float64, categories []string) error
 	DeleteAPI(userId string, apiId string) error
@@ -80,6 +81,31 @@ func (s *service) CreateNewAPI(name string, desc string, providerId string, base
 	}
 
 	return apiID, nil
+}
+
+func (s *service) GetAdminData() (map[string]interface{}, error) {
+	apiCount, err := s.repo.GetApiTotalNumbers()
+	if err != nil {
+		return nil, err
+	}
+	userCount, err := s.repo.GetUserTotalNumbers()
+	if err != nil {
+		return nil, err
+	}
+	transactionCount, err := s.repo.GetTransaction24HNumbers()
+	if err != nil {
+		return nil, err
+	}
+	allTopUps, err := s.repo.GetRecentAllTopUps()
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"api_count":       apiCount,
+		"user_count":      userCount,
+		"transaction_24h": transactionCount,
+		"recent_topups":   allTopUps,
+	}, nil
 }
 
 func (s *service) UpdateAPI(apiID string, name string, desc string, baseUrl string, pricePerCall float64, categories []string) error {

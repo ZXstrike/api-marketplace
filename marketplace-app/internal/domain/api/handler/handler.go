@@ -46,6 +46,15 @@ func (h *Handler) CreateNewAPI(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "API created successfully", "api_id": apiID})
 }
 
+func (h *Handler) GetAdminData(c *gin.Context) {
+	data, err := h.service.GetAdminData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch admin data: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
 func (h *Handler) UpdateAPI(c *gin.Context) {
 	var req struct {
 		Name         string   `json:"name" binding:"required"`
