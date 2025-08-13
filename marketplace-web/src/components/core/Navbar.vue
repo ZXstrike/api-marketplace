@@ -24,12 +24,14 @@
 
       <!-- Menus for Authenticated Users -->
       <div v-if="authStore.isLoggedIn" class=" lg:flex items-center gap-6">
-        <router-link to="/browse"
+        <router-link to="/browse" v-if="authStore.user.role != 'admin'"
           class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">APIs</router-link>
         <router-link to="/dashboard"
           class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Dashboard</router-link>
         <router-link to="/store" v-if="authStore.user.role == 'provider'"
           class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">My Store</router-link>
+        <router-link to="/admin" v-if="authStore.user.role == 'admin'"
+          class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Admin</router-link>
         <router-link to="/docs"
           class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Docs</router-link>
       </div>

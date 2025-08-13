@@ -66,6 +66,7 @@ func migration(db *gorm.DB) {
 	models.GenerateCategories(db)
 	models.GenerateAdminUser(db)
 	models.GenerateSystemSettings(db)
+	models.GeneratePlatformWallet(db)
 
 	// Migrate user balances to wallets
 	if err := models.MigrateUserBalancesToWallets(db); err != nil {

@@ -36,15 +36,23 @@ func (s *service) TopUp(userID, walletType string, amount float64) error {
 }
 
 func (s *service) GetBillingInfo(userID, walletType string) (map[string]interface{}, error) {
-	balance, err := s.r.GetBalanceByUserIDAndType(userID, walletType)
-	if err != nil {
-		return nil, err
+
+	userBalance := 0.0
+	if walletType != "admin" {
+		balance, err := s.r.GetBalanceByUserIDAndType(userID, walletType)
+		if err != nil {
+			return nil, err
+		}
+		userBalance = balance
+	} else {
+		
+		
 	}
 
 	return map[string]interface{}{
 		"user_id":     userID,
 		"wallet_type": walletType,
-		"balance":     balance,
+		"balance":     userBalance,
 	}, nil
 }
 

@@ -124,7 +124,8 @@ async function handleLogin() {
     console.log('User roles:', userData.roles);
 
     const isProvider = userData.roles?.some(role => role.name === 'provider');
-    const role = isProvider ? 'provider' : 'consumer';
+    const isAdmin = userData.roles?.some(role => role.name === 'admin');
+    const role = isAdmin ? 'admin' : (isProvider ? 'provider' : 'consumer') ;
 
     console.log('Role determined:', role);
 
@@ -134,13 +135,18 @@ async function handleLogin() {
       role: role
     };
 
+    
     console.log('User profile:', user);
 
     // 3. Call the store action to update the state
     authStore.login(user, token);
 
     // 4. Navigate to the dashboard
-    router.push('/dashboard');
+    if (role === 'admin') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
 
   } catch (e) {
     errorMessage.value = e.message || 'Login failed. Please check your credentials.';

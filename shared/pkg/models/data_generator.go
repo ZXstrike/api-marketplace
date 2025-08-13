@@ -216,3 +216,28 @@ func GenerateSlug(name string) string {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	return slug
 }
+
+// GeneratePlatformWallet ensures the main platform wallet exists.
+func GeneratePlatformWallet(db *gorm.DB) error {
+	const walletName = "main"
+
+	var count int64
+	if err := db.Model(&PlatformWallet{}).Where("name = ?", walletName).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to check platform wallet: %w", err)
+	}
+
+	if count == 0 {
+		w := PlatformWallet{
+			Name:    walletName,
+			Balance: 0, // Initial balance; adjust if you want a seeded value.
+		}
+		if err := db.Create(&w).Error; err != nil {
+			return fmt.Errorf("failed to create platform wallet: %w", err)
+		}
+		log.Printf("✅ created platform wallet '%s' with balance %.2f", walletName, w.Balance)
+	} else {
+		log.Printf("✅ platform wallet '%s' already exists", walletName)
+	}
+
+	return nil
+}
