@@ -48,6 +48,15 @@ func InitRoutes(router *gin.Engine, db *gorm.DB, redisClient *redis.Client) {
 			),
 			db,
 		),
+		middleware.RateLimitMiddleware(
+			log.New(
+				log.Writer(),
+				"api-gateway: ",
+				log.LstdFlags|log.Lshortfile,
+			),
+			redisClient,
+			db,
+		),
 		middleware.BillingMiddleware(db),
 		proxy.ProxyHandler(db, redisClient),
 	)

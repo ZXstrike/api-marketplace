@@ -55,9 +55,9 @@
 
           <!-- NEW: Become a Provider Card -->
           <div v-if="authStore.userRole === 'consumer'" class="dashboard-card">
-            <h2 class="section-heading">Seller Account</h2>
+            <h2 class="section-heading">Provider Account</h2>
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <p class="text-gray-600 dark:text-gray-400">Ready to share your APIs with the world? Open a seller account to start publishing.</p>
+                <p class="text-gray-600 dark:text-gray-400">Ready to share your APIs with the world? Open a provider account to start publishing.</p>
                 <button @click="handleBecomeProvider" :disabled="isUpgrading" class="btn-primary flex-shrink-0">
                     {{ isUpgrading ? 'Creating Store...' : 'Become a Provider' }}
                 </button>

@@ -188,7 +188,7 @@ func createWalletIfNotExists(db *gorm.DB, userID, walletType string, balance flo
 func GenerateSystemSettings(db *gorm.DB) error {
 	defaultSettings := map[string]string{
 		"platform_fee_percentage": "0.05", // Represents a 5% fee
-		"rate_limit_per_minute":   "1000", // Default rate limit
+		"rate_limit_per_minute":   "500",  // Default rate limit
 	}
 
 	for key, value := range defaultSettings {

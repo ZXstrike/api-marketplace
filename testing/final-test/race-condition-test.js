@@ -4,8 +4,8 @@ import { check } from 'k6';
 export const options = {
   // 10 virtual user, masing-masing mencoba 1 request secara bersamaan
   // Total ada 10 permintaan, padahal saldo hanya cukup untuk 5
-  vus: 50,
-  iterations: 10,
+  vus: 20,
+  iterations: 60,
 };
 
 export default function () {
