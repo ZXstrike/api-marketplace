@@ -68,7 +68,7 @@ func (h *Handler) UpdateStoreHandler(c *gin.Context) {
 	}
 
 	var req struct {
-		Description string `json:"description"`
+		Description string `json:"description" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

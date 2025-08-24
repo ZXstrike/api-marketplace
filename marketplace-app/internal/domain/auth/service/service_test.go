@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
 	"testing"
@@ -52,7 +53,7 @@ func (m *MockRepository) CreateRole(ctx context.Context, role *models.Role) erro
 
 func TestRegister(t *testing.T) {
 	// Generate dummy keys for service initialization
-	privateKey, _ := ecdsa.GenerateKey(nil, rand.Reader)
+	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	testCases := []struct {
 		name          string
@@ -145,7 +146,7 @@ func TestRegister(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	privateKey, _ := ecdsa.GenerateKey(nil, rand.Reader)
+	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	password := "password123"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 

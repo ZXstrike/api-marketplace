@@ -42,7 +42,7 @@ func (h *Handler) GetMyProfileHandler(c *gin.Context) {
 
 func (h *Handler) UpdateUserProfileHandler(c *gin.Context) {
 	var req struct {
-		Description string `json:"description"`
+		Description string `json:"description" binding:"required"`
 	}
 
 	userID, exists := c.Get("user_id")

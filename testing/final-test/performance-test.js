@@ -33,16 +33,16 @@ export default function () {
   statusCounter.add(1, { status: res.status });
 }
 
-export function handleSummary(data) {
-  const status200s = data.metrics.http_req_status.values['count{status:200}'] || 0;
-  const status429s = data.metrics.http_req_status.values['count{status:429}'] || 0;
+// export function handleSummary(data) {
+//   const status200s = data.metrics.http_req_status.values['count{status:200}'] || 0;
+//   const status429s = data.metrics.http_req_status.values['count{status:429}'] || 0;
 
-  console.log('--- Status Code Summary ---');
-  console.log(`Number of 200 OK responses: ${status200s}`);
-  console.log(`Number of 429 Too Many Requests responses: ${status429s}`);
-  console.log('---------------------------');
+//   console.log('--- Status Code Summary ---');
+//   console.log(`Number of 200 OK responses: ${status200s}`);
+//   console.log(`Number of 429 Too Many Requests responses: ${status429s}`);
+//   console.log('---------------------------');
 
-  // To also show the default summary, we can import and use defaultHandleSummary
-  // For now, we'll just show our custom summary.
-  return {};
-}
+//   // To also show the default summary, we can import and use defaultHandleSummary
+//   // For now, we'll just show our custom summary.
+//   return {};
+// }

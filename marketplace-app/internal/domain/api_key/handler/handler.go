@@ -31,7 +31,6 @@ func (h *Handler) CreateAPIKey(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"api_key": apiKey})
-	return
 }
 
 func (h *Handler) DeleteAPIKey(c *gin.Context) {
