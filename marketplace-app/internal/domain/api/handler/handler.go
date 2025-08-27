@@ -297,3 +297,35 @@ func (h *Handler) GetAllCategories(c *gin.Context) {
 
 	c.JSON(http.StatusOK, categories)
 }
+
+func (h *Handler) GetConsumerOverview(c *gin.Context) {
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	overview, err := h.service.GetConsumerOverview(userId.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch consumer overview: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, overview)
+}
+
+func (h *Handler) GetProviderOverview(c *gin.Context) {
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	overview, err := h.service.GetProviderOverview(userId.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch provider overview: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, overview)
+}

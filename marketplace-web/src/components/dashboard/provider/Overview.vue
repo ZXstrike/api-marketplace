@@ -13,7 +13,7 @@
                 <p class="text-3xl font-bold mt-2">{{ new Intl.NumberFormat('id-ID', {
                     style: 'currency', currency:
                         'IDR', minimumFractionDigits: 0
-                }).format(userBalance || 0) }}</p>
+                }).format(revenue || 0) }}</p>
             </div>
             <div class="dashboard-card">
                 <div class="flex items-center justify-between">
@@ -34,7 +34,7 @@
                     <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Requests (Month)</h3><i
                         data-feather="activity" class="text-red-500"></i>
                 </div>
-                <p class="text-3xl font-bold mt-2">8.2M</p>
+                <p class="text-3xl font-bold mt-2">{{ monthlyRequest }}</p>
             </div>
         </div>
         <div class="dashboard-card">
@@ -53,7 +53,7 @@ import Chart from 'chart.js/auto';
 const authStore = useAuthStore();
 
 const props = defineProps({
-    userBalance: {
+    revenue: {
         type: Number,
         default: 0
     },
@@ -65,6 +65,11 @@ const props = defineProps({
         type: Number,
         default: 0
     },
+    monthlyRequest: {
+        type: Number,
+        default: 0
+    },
+    
 });
 
 let revenueChartInstance = null;

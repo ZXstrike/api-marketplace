@@ -6,15 +6,16 @@
         <DashboardSidebar :active-section="activeSection" @navigate="handleNavigation" />
 
         <main class="flex-1 container mx-auto px-6">
-          <DashboardOverview v-if="activeSection === 'overview'" :subscriptions="subscriptions"
-            :user-balance="userBalance" :monthlyCost="monthlyCost" :requests-this-month="requestsThisMonth" />
+          <DashboardOverview v-if="activeSection === 'overview'" :subscriptions="subscriptionsCount"
+            :user-balance="userBalance" :monthlyCost="monthlyCost" :requests-this-month="requestsThisMonth"
+            :weeklyUsage="weeklyUsage" />
           <SubscriptionManager v-if="activeSection === 'subscriptions'" :subscriptions="subscriptions"
             :loading="loadingSubscriptions" @unsubscribe="handleUnsubscribe" @regenerate-key="handleRegenerateKey"
             @copy-key="handleCopyKey" />
           <BillingUsage v-if="activeSection === 'billing'" :user-balance="userBalance" @top-up="isModalOpen = true" />
         </main>
 
-          <TopupModal :is-open="isModalOpen" @close="isModalOpen = false" @topup-success="handleSuccess" />
+        <TopupModal :is-open="isModalOpen" @close="isModalOpen = false" @topup-success="handleSuccess" />
       </div>
     </main>
   </div>
@@ -34,7 +35,9 @@ import TopupModal from '@/components/dashboard/consumer/TopupModal.vue';
 
 const activeSection = ref('overview');
 const subscriptions = ref([]);
+const subscriptionsCount = ref(0);
 const loadingSubscriptions = ref(true);
+const weeklyUsage = ref([]);
 const userBalance = ref(0);
 const monthlyCost = ref(0);
 const requestsThisMonth = ref(0);
@@ -66,6 +69,21 @@ const fetchUsernBillingInfo = async () => {
     console.log('User Balance:', userBalance.value);
   } catch (error) {
     console.error('Failed to fetch user billing info:', error);
+  }
+};
+
+const fetchUserOverview = async () => {
+  try {
+    const response = await apiClient.get('/api/consumer/overview');
+    const data = await response.json();
+    console.log('User Overview:', data);
+    subscriptionsCount.value = data.active_subscriptions_count || 0;
+    console.log('Subscriptions Count:', subscriptionsCount.value);
+    monthlyCost.value = data.total_monthly_cost || 0;
+    weeklyUsage.value = data.requests_last_7_days || [];
+    requestsThisMonth.value = data.requests_last_30_days || 0;
+  } catch (error) {
+    console.error('Failed to fetch user overview:', error);
   }
 };
 
@@ -131,6 +149,35 @@ const handleRegenerateKey = async (subscriptionId) => {
 };
 
 const handleCopyKey = (key) => {
+  if (!navigator.clipboard) {
+    const textArea = document.createElement("textarea");
+    textArea.value = key;
+
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert('API key copied to clipboard.');
+      } else {
+        alert('Failed to copy API key.');
+      }
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+      alert('Failed to copy API key.');
+    }
+
+    document.body.removeChild(textArea);
+    return;
+  }
+
   navigator.clipboard.writeText(key).then(() => {
     alert('API key copied to clipboard.');
   }).catch(err => {
@@ -148,6 +195,7 @@ const handleNavigation = (section) => {
 onMounted(() => {
   fetchSubscriptions();
   fetchUsernBillingInfo();
+  fetchUserOverview();
 });
 
 // Panggil ulang jika tab diubah (opsional, untuk memastikan data selalu baru)

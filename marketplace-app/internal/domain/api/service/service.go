@@ -22,6 +22,8 @@ type Service interface {
 	DeleteAPIEndpoint(endpointID string) error
 	GetAllEndpointsByAPIVersionID(apiVersionID string) ([]models.Endpoint, error)
 	GetAllCategories() ([]models.Category, error)
+	GetConsumerOverview(userId string) (map[string]interface{}, error)
+	GetProviderOverview(userId string) (map[string]interface{}, error)
 }
 
 type service struct {
@@ -266,4 +268,12 @@ func (s *service) GetAllCategories() ([]models.Category, error) {
 		return nil, err
 	}
 	return categories, nil
+}
+
+func (s *service) GetConsumerOverview(userId string) (map[string]interface{}, error) {
+	return s.repo.GetConsumerOverview(userId)
+}
+
+func (s *service) GetProviderOverview(userId string) (map[string]interface{}, error) {
+	return s.repo.GetProviderOverview(userId)
 }

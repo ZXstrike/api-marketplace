@@ -14,6 +14,10 @@
             :apis="myApis"
             :totalSubs="totalSubscribers" 
             :user-balance="userBalance"
+            :revenue="revenue"
+            :monthlyRequest="monthlyRequest"
+            :publishedApiCount="publishedApiCount"
+            :total-subs="totalSubs"
           />
           <MyApis 
             v-if="activeSection === 'apis'" 
@@ -44,6 +48,11 @@ const activeSection = ref('overview');
 const myApis = ref([]);
 const userBalance = ref(0);
 
+const revenue = ref(0); // Total revenue in the last 30 days
+const monthlyRequest = ref(0); // Total requests in the last 30 days
+const publishedApiCount = ref(0);
+const totalSubs = ref(0);
+
 const totalSubscribers = computed(() => {
   return myApis.value.reduce((total, api) => total + api.subscribers, 0);
 });
@@ -63,11 +72,28 @@ onMounted(async () => {
     }));
 
     fetchUsernBillingInfo();
+    fetchProviderOverview();
   } catch (error) {
     console.error("Failed to fetch APIs:", error);
     // Optionally, set an error state to show a message to the user
   }
 });
+
+
+const fetchProviderOverview = async () => {
+  try {
+    const response = await apiClient.get('/api/provider/overview');
+    const data = await response.json();
+    // Process overview data if needed
+    console.log('Provider Overview:', data);
+    revenue.value = data.total_revenue || 0;
+    totalSubs.value = data.active_subscriber_count || 0;
+    publishedApiCount.value = data.published_apis_count || 0;
+    monthlyRequest.value = data.requests_last_30_days || 0;
+  } catch (error) {
+    console.error('Failed to fetch provider overview:', error);
+  }
+};
 
 
 const fetchUsernBillingInfo = async () => {
@@ -82,6 +108,7 @@ const fetchUsernBillingInfo = async () => {
     console.error('Failed to fetch user billing info:', error);
   }
 };
+
 
 
 // Function to handle the 'navigate' event from the sidebar

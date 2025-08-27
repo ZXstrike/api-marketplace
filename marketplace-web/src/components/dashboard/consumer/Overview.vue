@@ -31,7 +31,7 @@
                     <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Active Subscriptions</h3><i
                         data-feather="grid" class="text-yellow-500"></i>
                 </div>
-                <p class="text-2xl font-bold mt-2">{{ subscriptions.length }}</p>
+                <p class="text-2xl font-bold mt-2">{{ subscriptions}}</p>
             </div>
             <div class="dashboard-card">
                 <div class="flex items-center justify-between">
@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import Chart from 'chart.js/auto';
 
@@ -61,7 +61,7 @@ import Chart from 'chart.js/auto';
 const authStore = useAuthStore();
 
 // Define props to receive data from the parent
-defineProps({
+const props = defineProps({
     userBalance: {
         type: Number,
         default: 0
@@ -75,6 +75,10 @@ defineProps({
         default: 0
     },
     subscriptions: {
+        type: Number,
+        default: 0
+    }, 
+    weeklyUsage: {
         type: Array,
         default: () => []
     }
@@ -90,13 +94,16 @@ const renderUsageChart = () => {
         usageChartInstance.destroy();
     }
 
+    const labels = props.weeklyUsage.map(entry => entry.date);
+    const data = props.weeklyUsage.map(entry => entry.count);
+
     usageChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['June 15', 'June 16', 'June 17', 'June 18', 'June 19', 'June 20', 'Today'],
+            labels: labels,
             datasets: [{
                 label: 'API Requests',
-                data: [1200, 1900, 3000, 5000, 2300, 2100, 4500],
+                data: data,
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.3
@@ -105,6 +112,12 @@ const renderUsageChart = () => {
         options: { responsive: true, maintainAspectRatio: false }
     });
 };
+
+watch(() => props.weeklyUsage, (newVal) => {
+    if (newVal && newVal.length > 0) {
+        renderUsageChart();
+    }
+}, { deep: true });
 
 onMounted(() => {
     nextTick(() => {

@@ -28,6 +28,8 @@ type Repository interface {
 	UpdateAPIEndpoint(apiEndpoint models.Endpoint) error
 	DeleteAPIEndpoint(id string) error
 	GetAllEndpointsByAPIVersionID(apiVersionID string) ([]models.Endpoint, error)
+	GetConsumerOverview(userId string) (map[string]interface{}, error)
+	GetProviderOverview(userId string) (map[string]interface{}, error)
 }
 
 type repository struct {
@@ -257,4 +259,142 @@ func (r *repository) GetAllEndpointsByAPIVersionID(apiVersionID string) ([]model
 		return nil, err
 	}
 	return endpoints, nil
+}
+
+func (r *repository) GetConsumerOverview(userId string) (map[string]interface{}, error) {
+	overview := make(map[string]interface{})
+
+	// 1. Active Subscriptions Count
+	var activeSubscriptionsCount int64
+	if err := r.db.Model(&models.Subscription{}).
+		Where("consumer_user_id = ?", userId).
+		Count(&activeSubscriptionsCount).Error; err != nil {
+		return nil, err
+	}
+	overview["active_subscriptions_count"] = activeSubscriptionsCount
+
+	// 2. Total Monthly Cost from all active subscriptions
+	var totalMonthlyCost float64
+	if err := r.db.Model(&models.UsageLog{}).
+		Joins("JOIN subscriptions ON usage_logs.subscription_id = subscriptions.id").
+		Joins("JOIN api_versions ON subscriptions.api_version_id = api_versions.id").
+		Where("subscriptions.consumer_user_id = ?", userId).
+		Select("COALESCE(SUM(api_versions.price_per_call), 0)").
+		Scan(&totalMonthlyCost).Error; err != nil {
+		return nil, err
+	}
+	overview["total_monthly_cost"] = totalMonthlyCost
+
+	// 3. Total requests in the last 30 days
+	var requestsLast30Days int64
+	if err := r.db.Model(&models.UsageLog{}).
+		Joins("JOIN subscriptions ON usage_logs.subscription_id = subscriptions.id").
+		Where("subscriptions.consumer_user_id = ? AND usage_logs.request_timestamp >= ?", userId, time.Now().AddDate(0, -1, 0)).
+		Count(&requestsLast30Days).Error; err != nil {
+		return nil, err
+	}
+	overview["requests_last_30_days"] = requestsLast30Days
+
+	// 4. Total requests in the last 7 days for all subscribed APIs
+	type dailyUsage struct {
+		Date  string `json:"date"`
+		Count int64  `json:"count"`
+	}
+	var requestsLast7Days []dailyUsage
+	now := time.Now()
+
+	for i := 6; i >= 0; i-- {
+		var count int64
+		day := now.AddDate(0, 0, -i)
+		dayStart := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location())
+		dayEnd := dayStart.AddDate(0, 0, 1)
+
+		if err := r.db.Model(&models.UsageLog{}).
+			Joins("JOIN subscriptions ON usage_logs.subscription_id = subscriptions.id").
+			Where("subscriptions.consumer_user_id = ? AND usage_logs.request_timestamp >= ? AND usage_logs.request_timestamp < ?", userId, dayStart, dayEnd).
+			Count(&count).Error; err != nil {
+			return nil, err
+		}
+
+		dateLabel := day.Format("January 2")
+		if i == 0 {
+			dateLabel = "Today"
+		}
+
+		requestsLast7Days = append(requestsLast7Days, dailyUsage{
+			Date:  dateLabel,
+			Count: count,
+		})
+	}
+	overview["requests_last_7_days"] = requestsLast7Days
+
+	return overview, nil
+}
+
+func (r *repository) GetProviderOverview(userId string) (map[string]interface{}, error) {
+	overview := make(map[string]interface{})
+
+	// 1. Active Subscriber Count
+	var activeSubscriberCount int64
+	if err := r.db.Model(&models.Subscription{}).
+		Joins("JOIN api_versions ON subscriptions.api_version_id = api_versions.id").
+		Joins("JOIN apis ON api_versions.api_id = apis.id").
+		Where("apis.provider_id = ?", userId).
+		Count(&activeSubscriberCount).Error; err != nil {
+		return nil, err
+	}
+	overview["active_subscriber_count"] = activeSubscriberCount
+
+	// 2. Total Monthly Revenue from all active subscriptions
+	var totalMonthlyRevenue float64
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	if err := r.db.Model(&models.PaymentTransaction{}).
+		Joins("JOIN wallets ON payment_transactions.user_id = wallets.user_id").
+		Where("payment_transactions.user_id = ? AND wallets.wallet_type = ? AND payment_transactions.amount > 0", userId, models.WalletTypeProvider).
+		Select("COALESCE(SUM(payment_transactions.amount), 0)").
+		Scan(&totalMonthlyRevenue).Error; err != nil {
+		return nil, err
+	}
+	overview["total_revenue"] = totalMonthlyRevenue
+
+	// 3. Total requests in the last 30 days
+	var requestsLast30Days int64
+	if err := r.db.Model(&models.UsageLog{}).
+		Joins("JOIN subscriptions ON usage_logs.subscription_id = subscriptions.id").
+		Joins("JOIN api_versions ON subscriptions.api_version_id = api_versions.id").
+		Joins("JOIN apis ON api_versions.api_id = apis.id").
+		Where("apis.provider_id = ? AND usage_logs.request_timestamp >= ?", userId, thirtyDaysAgo).
+		Count(&requestsLast30Days).Error; err != nil {
+		return nil, err
+	}
+	overview["requests_last_30_days"] = requestsLast30Days
+
+	// 4. Total requests in the last 4 weeks for all subscribed APIs
+	var requestsLast4Weeks []map[string]interface{}
+	now := time.Now()
+	for i := 3; i >= 0; i-- {
+		var count int64
+		weekStart := now.AddDate(0, 0, -7*i)
+		weekStart = time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, now.Location())
+		weekEnd := weekStart.AddDate(0, 0, 7)
+		if err := r.db.Model(&models.UsageLog{}).
+			Joins("JOIN subscriptions ON usage_logs.subscription_id = subscriptions.id").
+			Joins("JOIN api_versions ON subscriptions.api_version_id = api_versions.id").
+			Joins("JOIN apis ON api_versions.api_id = apis.id").
+			Where("apis.provider_id = ? AND usage_logs.request_timestamp >= ? AND usage_logs.request_timestamp < ?", userId, weekStart, weekEnd).
+			Count(&count).Error; err != nil {
+			return nil, err
+		}
+		weekLabel := weekStart.Format("Jan 2")
+		if i == 0 {
+			weekLabel = "This Week"
+		}
+		requestsLast4Weeks = append(requestsLast4Weeks, map[string]interface{}{
+			"week":  weekLabel,
+			"count": count,
+		})
+	}
+	overview["requests_last_4_weeks"] = requestsLast4Weeks
+
+	return overview, nil
 }

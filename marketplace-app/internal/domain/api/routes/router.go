@@ -30,6 +30,8 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB, privateKey *ecdsa.PrivateKe
 		api.GET("/api-endpoints/:apiVersionID", h.GetAllAPIEndpointsByAPIVersionID)
 		api.GET("/categories", h.GetAllCategories)
 		api.GET("/admin/data", middleware.AuthMiddleware(publicKey), h.GetAdminData)
+		api.GET("/consumer/overview", middleware.AuthMiddleware(publicKey), h.GetConsumerOverview)
+		api.GET("/provider/overview", middleware.AuthMiddleware(publicKey), h.GetProviderOverview)
 	}
 
 }
