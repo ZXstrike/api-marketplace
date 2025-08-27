@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/ZXstrike/shared/pkg/models"
 	"gorm.io/gorm"
@@ -13,8 +14,13 @@ type Repository interface {
 	GetStoreByUsername(ctx context.Context, username string) (*models.User, error)
 	GetAllStores(ctx context.Context) ([]models.User, error)
 	UpdateStore(ctx context.Context, user_id string, description string) error
-	GetStoreApis(ctx context.Context, user_id string) ([]models.API, error)
+	GetStoreApis(ctx context.Context, user_id string) ([]ApiWithRevenue, error)
 	GetApiVersionsSubsCount(ctx context.Context, apiID string) (int, error)
+}
+
+type ApiWithRevenue struct {
+	models.API
+	TotalRevenue float64 `json:"total_revenue"`
 }
 
 type repository struct {
@@ -123,14 +129,60 @@ func (r *repository) UpdateStore(ctx context.Context, user_id string, descriptio
 	return r.db.WithContext(ctx).Save(&user).Error
 }
 
-func (r *repository) GetStoreApis(ctx context.Context, user_id string) ([]models.API, error) {
+func (r *repository) GetStoreApis(ctx context.Context, user_id string) ([]ApiWithRevenue, error) {
 	var apis []models.API
-	if err := r.db.Where("provider_id = ?", user_id).
+	if err := r.db.WithContext(ctx).Where("provider_id = ?", user_id).
+		Preload("Versions").
 		Find(&apis).Error; err != nil {
 		return nil, err
 	}
 
-	return apis, nil
+	if len(apis) == 0 {
+		return []ApiWithRevenue{}, nil
+	}
+
+	apiIDs := make([]string, len(apis))
+	for i, api := range apis {
+		apiIDs[i] = api.ID
+	}
+
+	type apiRevenueResult struct {
+		ApiID        string
+		TotalRevenue float64
+	}
+
+	var revenues []apiRevenueResult
+	now := time.Now()
+	firstOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, 0)
+
+	if err := r.db.Model(&models.PaymentTransaction{}).
+		Select("api_versions.api_id, COALESCE(SUM(payment_transactions.amount), 0) as total_revenue").
+		Joins("JOIN subscriptions ON subscriptions.id = payment_transactions.subscription_id").
+		Joins("JOIN api_versions ON api_versions.id = subscriptions.api_version_id").
+		Where("api_versions.api_id IN ?", apiIDs).
+		Where("payment_transactions.user_id = ?", user_id).
+		Where("payment_transactions.transaction_time >= ? AND payment_transactions.transaction_time < ?", firstOfMonth, lastOfMonth).
+		Where("payment_transactions.amount > 0"). // Only consider credits (income)
+		Group("api_versions.api_id").
+		Scan(&revenues).Error; err != nil {
+		return nil, err
+	}
+
+	revenueMap := make(map[string]float64, len(revenues))
+	for _, rev := range revenues {
+		revenueMap[rev.ApiID] = rev.TotalRevenue
+	}
+
+	apisWithRevenue := make([]ApiWithRevenue, len(apis))
+	for i, api := range apis {
+		apisWithRevenue[i] = ApiWithRevenue{
+			API:          api,
+			TotalRevenue: revenueMap[api.ID],
+		}
+	}
+
+	return apisWithRevenue, nil
 }
 
 func (r *repository) GetApiVersionsSubsCount(ctx context.Context, apiID string) (int, error) {

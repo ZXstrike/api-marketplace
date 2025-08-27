@@ -12,12 +12,13 @@
           <DashboardOverview 
             v-if="activeSection === 'overview'" 
             :apis="myApis"
-            :totalSubs="totalSubscribers" 
+            :totalSubs="totalSubs" 
             :user-balance="userBalance"
             :revenue="revenue"
             :monthlyRequest="monthlyRequest"
             :publishedApiCount="publishedApiCount"
             :total-subs="totalSubs"
+            :weekly-revenue="weeklyRevenue"
           />
           <MyApis 
             v-if="activeSection === 'apis'" 
@@ -53,9 +54,7 @@ const monthlyRequest = ref(0); // Total requests in the last 30 days
 const publishedApiCount = ref(0);
 const totalSubs = ref(0);
 
-const totalSubscribers = computed(() => {
-  return myApis.value.reduce((total, api) => total + api.subscribers, 0);
-});
+const weeklyRevenue = ref([0]);
 
 // Fetch data when the component is mounted
 onMounted(async () => {
@@ -63,13 +62,17 @@ onMounted(async () => {
     const response = await apiClient.get('/store/apis');
     // Map API response to the data structure expected by child 
     const data = await response.json();
+
+    console.log('API Response Data:', data);
     myApis.value = data.map(api => ({
       id: api.id,
       name: api.name,
       subscribers: api.subs_count,
       status: 'Published', // Placeholder as API doesn't provide this
-      monthlyRevenue: 0,   // Placeholder as API doesn't provide this
+      monthlyRevenue: api.total_revenue,   // Placeholder as API doesn't provide this
     }));
+
+    console.log('Fetched APIs:', myApis.value);
 
     fetchUsernBillingInfo();
     fetchProviderOverview();
@@ -90,6 +93,8 @@ const fetchProviderOverview = async () => {
     totalSubs.value = data.active_subscriber_count || 0;
     publishedApiCount.value = data.published_apis_count || 0;
     monthlyRequest.value = data.requests_last_30_days || 0;
+    weeklyRevenue.value = data.requests_last_4_weeks || [0];
+    console.log('Weekly Revenue:', weeklyRevenue.value);
   } catch (error) {
     console.error('Failed to fetch provider overview:', error);
   }

@@ -48,9 +48,10 @@ func (s *service) UpdateStore(ctx context.Context, userID string, description st
 }
 
 type ApisData struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	SubsCount int    `json:"subs_count"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	SubsCount    int     `json:"subs_count"`
+	TotalRevenue float64 `json:"total_revenue"`
 }
 
 func (s *service) GetStoreApis(ctx context.Context, userID string) ([]ApisData, error) {
@@ -77,9 +78,10 @@ func (s *service) GetStoreApis(ctx context.Context, userID string) ([]ApisData, 
 			return nil, err
 		}
 		data = append(data, ApisData{
-			ID:        api.ID,
-			Name:      api.Name,
-			SubsCount: subsCount,
+			ID:           api.ID,
+			Name:         api.Name,
+			SubsCount:    subsCount,
+			TotalRevenue: api.TotalRevenue,
 		})
 	}
 

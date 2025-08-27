@@ -105,6 +105,14 @@ func (m *MockService) GetConsumerOverview(userId string) (map[string]interface{}
 	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
+func (m *MockService) GetProviderOverview(userId string) (map[string]interface{}, error) {
+	args := m.Called(userId)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string]interface{}), args.Error(1)
+}
+
 func TestCreateNewAPI(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

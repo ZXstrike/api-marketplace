@@ -38,14 +38,14 @@
             </div>
         </div>
         <div class="dashboard-card">
-            <h3 class="text-xl font-bold mb-4">Revenue (Last 30 Days)</h3>
+            <h3 class="text-xl font-bold mb-4">Requests (Last 4 Weeks)</h3>
             <div class="h-80"><canvas id="revenueChart"></canvas></div>
         </div>
     </section>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, computed, nextTick } from 'vue';
+import { onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import Chart from 'chart.js/auto';
 
@@ -69,14 +69,17 @@ const props = defineProps({
         type: Number,
         default: 0
     },
-    
+    weeklyRevenue: {
+        type: Array,
+        default: () => []
+    }
 });
-
-let revenueChartInstance = null;
 
 const publishedApiCount = computed(() => {
     return props.apis.filter(api => api.status === 'Published').length;
 });
+
+let revenueChartInstance = null;
 
 const renderRevenueChart = () => {
     const ctx = document.getElementById('revenueChart');
@@ -87,21 +90,38 @@ const renderRevenueChart = () => {
         revenueChartInstance.destroy();
     }
 
+    const labels = props.weeklyRevenue.map(entry => entry.week);
+    const data = props.weeklyRevenue.map(entry => entry.count);
+
     revenueChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'This Week'],
+            labels: labels,
             datasets: [{
-                label: 'Revenue ($)',
-                data: [250, 310, 280, 450],
+                label: 'Requests',
+                data: data,
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.3
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
     });
 };
+
+watch(() => props.weeklyRevenue, (newVal) => {
+    if (newVal) {
+        renderRevenueChart();
+    }
+}, { deep: true });
 
 onMounted(() => {
     nextTick(() => {
