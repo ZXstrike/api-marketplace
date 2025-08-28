@@ -1,6 +1,6 @@
 <template>
   <section class="flex flex-col gap-3">
-    <h1 class="text-3xl font-bold">Billing & Usage</h1>
+    <h1 class="text-3xl font-bold">Wallet</h1>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
       <div class="dashboard-card lg:col-span-1 text-center flex flex-col justify-center gap-4">
         <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Current Balance</h3>
@@ -15,7 +15,7 @@
           Top Up Balance
         </button>
       </div>
-      <div class="dashboard-card lg:col-span-2">
+      <!-- <div class="dashboard-card lg:col-span-2">
         <h3 class="text-xl font-bold mb-4">Transaction History</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left">
@@ -45,7 +45,7 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </div> -->
     </div>
   </section>
 </template>
